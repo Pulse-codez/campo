@@ -1,12 +1,39 @@
 """Application configuration via pydantic-settings."""
 
 from functools import lru_cache
+<<<<<<< Updated upstream
 from pathlib import Path
+=======
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+>>>>>>> Stashed changes
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # The repo keeps one .env at the project root, not inside backend/.
 ROOT_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
+
+
+def normalise_database_url(url: str) -> str:
+    """Make a PostgreSQL URL usable with the asyncpg driver.
+
+    Accepts postgres:// and postgresql:// (as copied from Neon or other hosts), rewrites them to
+    postgresql+asyncpg://, converts sslmode to asyncpg's ssl option, and drops channel_binding,
+    which asyncpg does not support.
+    """
+    parts = urlsplit(url)
+    scheme = parts.scheme
+    if scheme in ("postgres", "postgresql"):
+        scheme = "postgresql+asyncpg"
+    query: list[tuple[str, str]] = []
+    for key, value in parse_qsl(parts.query, keep_blank_values=True):
+        if key == "sslmode":
+            query.append(("ssl", value))
+        elif key == "channel_binding":
+            continue
+        else:
+            query.append((key, value))
+    return urlunsplit((scheme, parts.netloc, parts.path, urlencode(query), parts.fragment))
 
 
 class Settings(BaseSettings):
@@ -16,6 +43,12 @@ class Settings(BaseSettings):
     sql_echo: bool = False
 
     database_url: str
+
+    @field_validator("database_url")
+    @classmethod
+    def _normalise_database_url(cls, value: str) -> str:
+        return normalise_database_url(value)
+
     redis_url: str = "redis://localhost:6379/0"
 
     jwt_secret: str
@@ -25,6 +58,10 @@ class Settings(BaseSettings):
 
     # AES-GCM key for message bodies at rest. Derive 32 bytes with SHA-256.
     field_encryption_key: str = ""
+
+    # When true, sign-up requires the campus email domain (and .ac.ke or .edu for "Other").
+    # Off by default so any email can register. Turn on before a pilot (spec Section 11).
+    enforce_university_email: bool = False
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"

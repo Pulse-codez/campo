@@ -115,9 +115,12 @@ To try counsellor features, an admin must first give a user a staff role. The ad
 | `Cannot reach the server at http://...:8000` on the sign-up page | The backend is not running. Start it with the command in step 5. |
 | Backend exits at startup with a connection error | PostgreSQL is not running, or `DATABASE_URL` in `backend/.env` is wrong. |
 | University dropdown says it could not load | Same as above. Use the **Try again** button after the backend is up. |
+| Kind messages or chat fail with `ai_auth_failed` (503) | Anthropic rejected `ANTHROPIC_API_KEY` ("Invalid bearer token"). Check the key in `backend/.env` for typos, extra spaces, or quotes, or create a new key in the Anthropic console. Restart the backend afterwards. |
+| Browser reports a CORS error for a request that also shows 500 | The server crashed on that request, so the error response had no CORS headers. Check the backend terminal for the real exception. |
 | Chat replies fail or show an error | `ANTHROPIC_API_KEY` is missing or invalid. Crisis messages still work without it. |
 | Voice button says voice is unavailable | ElevenLabs keys are not set. Typing still works. |
 | Resource, study, decision, or policy routes return 502 | The MCP server on port 8001 is not running. |
+| `couldn't import psycopg 'c' implementation` or `libpq library not found` | The database URL uses a driver the backend does not use. The backend accepts `postgresql://` URLs (for example from Neon) and converts them to `postgresql+asyncpg://` automatically. Make sure you restarted the backend after editing `.env`. |
 | Browser shows a hydration warning | Usually a browser extension rewriting the page. The theme script is already handled. |
 
 ## 8. Useful commands

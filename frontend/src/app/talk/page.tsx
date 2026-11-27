@@ -3,7 +3,12 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 
+<<<<<<< Updated upstream
 import AppShell, { useUser } from "@/components/AppShell";
+=======
+import AppShell from "@/components/AppShell";
+import KindMessages from "@/components/KindMessages";
+>>>>>>> Stashed changes
 import {
   api,
   ApiError,
@@ -237,7 +242,8 @@ function TalkConsole() {
         : "Tap to talk";
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="mx-auto w-full max-w-3xl space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Talk</h1>
@@ -336,6 +342,8 @@ function TalkConsole() {
           Send
         </button>
       </form>
+    </div>
+    <KindMessages />
     </div>
   );
 }

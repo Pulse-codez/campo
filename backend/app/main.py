@@ -2,18 +2,25 @@
 
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from anthropic import APIError, AuthenticationError
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api import (
     admin,
     auth,
+    checkin,
     conversations,
     counselling,
     decision,
     escalation,
     health,
+<<<<<<< Updated upstream
     knowledge,
+=======
+    kindness,
+>>>>>>> Stashed changes
     onboarding,
     peer,
     policy,
@@ -67,6 +74,8 @@ for router in (
     conversations.router,
     peer.router,
     counselling.router,
+    checkin.router,
+    kindness.router,
     speech.router,
     admin.router,
     safety.router,
@@ -79,6 +88,14 @@ for router in (
     knowledge.router,
 ):
     app.include_router(router)
+
+
+@app.exception_handler(APIError)
+async def anthropic_error_handler(request: Request, exc: APIError) -> JSONResponse:
+    # Handled here (not as a 500) so the response still carries the CORS headers and the app can show a message.
+    if isinstance(exc, AuthenticationError):
+        return JSONResponse(status_code=503, content={"detail": "ai_auth_failed"})
+    return JSONResponse(status_code=502, content={"detail": "ai_provider_error"})
 
 
 @app.get("/", tags=["health"])

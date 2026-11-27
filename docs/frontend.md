@@ -12,8 +12,9 @@ The web app is a Next.js 16 application (App Router, React, TypeScript, Tailwind
 | `/onboarding` | Signed-in students | Three steps: concerns, virtual therapist, privacy choices |
 | `/talk` | Signed-in students | Chat with text and voice (speech to speech, turn by turn) |
 | `/sessions` | Students and staff | Students: request counselling. Staff: the session queue. |
+| `/checkin` | Students | Monthly check-in: how you are feeling and where you are going |
 
-The `/dashboard` page was removed on purpose. Students land on `/talk` after sign-in.
+The `/dashboard` page was removed on purpose. Students land on `/talk` after sign-in. The Privacy tab was removed from the navigation. The `/onboarding` page still exists, but it is only reachable by typing the address or by a first sign-in.
 
 Links to `/privacy`, `/terms`, and `/accessibility` in the footer point to pages that do not exist yet.
 
@@ -45,6 +46,22 @@ Returning users who open `/onboarding` again see their saved choices and can cha
 ### Counselling (`/sessions`)
 - Students need counselling consent to send a request. If consent is off, the page explains how to turn it on.
 - Staff see only requests from their university, where the student has consented. They can accept (**Accept**), complete, or cancel a request.
+
+### Staying signed in
+- The access token lasts 15 minutes. When a request returns 401, the app trades the refresh token (valid for 14 days) for a new pair and retries the request once. You stay signed in without signing up or in again.
+- Sign-in is only needed after the refresh token expires, or after you log out.
+- The university list is kept in the browser for 24 hours. Use **Try again** on the sign-up form to fetch it fresh.
+
+### Monthly check-in (`/checkin`)
+1. Writing opens in the last seven days of the month. Missed months from the last three can still be written.
+2. Pick the month, then answer: "How are you feeling this month?" and "Where are you going in life?"
+3. Each month takes one check-in. Past check-ins are listed below the form.
+4. If the writing contains crisis words, the entry is still saved, and the page shows crisis contacts.
+
+### Kind words (beside the chat on `/talk`)
+- **A kind message:** pick a theme and get a short message from Claude. Copy it, or ask for another.
+- **Write to someone:** write a note, optionally name who it is for, and save it. Saved notes can be copied or deleted. They are only visible to you.
+- The message panel shows an explanation if the AI service is not configured. Writing notes still works.
 
 ## 3. Theme (light and dark)
 

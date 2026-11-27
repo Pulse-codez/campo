@@ -25,7 +25,6 @@ def get_client() -> AsyncAnthropic:
 async def generate_response(
     messages: list[dict],
     model: str | None = None,
-    temperature: float = 0.7,
     max_tokens: int = 1000,
 ) -> str:
     """Generate a Claude response from a list of {role, content} messages."""
@@ -39,7 +38,6 @@ async def generate_response(
 
     response = await client.messages.create(
         model=model,
-        temperature=temperature,
         max_tokens=max_tokens,
         system=system_prompt,
         messages=chat_messages,

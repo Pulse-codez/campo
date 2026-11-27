@@ -36,12 +36,14 @@ Base URL in development: `http://localhost:8000`. Interactive docs: `http://loca
 | POST | `/auth/refresh` | Refresh token as bearer | Returns a new token pair. |
 | GET | `/auth/me` | Student | The signed-in user, including `role`, `onboarded`, `concerns`, `therapist_key`. |
 
+By default any email address can register (`ENFORCE_UNIVERSITY_EMAIL=false`). With the setting on, the domain rules below apply.
+
 Registration errors:
 
 | `detail` | Meaning |
 |---|---|
 | `university_not_found` | Unknown or inactive university |
-| `email_domain_not_allowed` | Email is not on the chosen university's domain |
+| `email_domain_not_allowed` | Email is not on the chosen university's domain (only when `ENFORCE_UNIVERSITY_EMAIL=true`) |
 | `other_university_name_required` | `other` chosen without a name |
 | `other_email_not_accepted` | Unlisted university with an email that does not end in `.ac.ke` or `.edu` |
 | `email_already_registered` | Email already exists (HTTP 409) |
@@ -90,6 +92,31 @@ Voice errors: `no_speech_detected` (422), `empty_audio` (422), `elevenlabs_not_c
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | PATCH | `/admin/users/{user_id}/role` | Admin | Body: `role`. Only for users in the admin's own university. There is no admin screen; use this endpoint directly. |
+
+## Monthly check-in
+
+Students write once a month about how they are feeling and where they are going in life.
+
+Writing opens in the last 7 days of each month. Students can also write for any of the last three months they missed. One check-in per month.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| GET | `/checkin/status` | Student | `current_period`, `open_periods` (months you can write for now), `submitted_periods` |
+| GET | `/checkin` | Student | Your past check-ins, newest first |
+| POST | `/checkin` | Student | Body: `feelings`, `direction`, `period` (optional, `YYYY-MM`, defaults to this month). Returns `entry`, `requires_human`, `contacts`. Crisis words still save the entry, and set `requires_human`. |
+
+Errors: `already_submitted` (409), `period_in_future`, `period_too_old`, `opens_in_last_week_of_month` (422).
+
+## Kind words
+
+Two features: a short message written by Claude, and kind notes a student writes to someone.
+
+| Method | Path | Auth | Purpose |
+|---|---|---|---|
+| POST | `/kindness/message` | Student | Body: `theme` (`encouragement`, `hope`, `rest`, `self_kindness`). Returns `message`. The prompt is fixed on the server. Returns 503 `ai_not_configured` when no Anthropic key is set. |
+| GET | `/kindness/notes` | Student | Your saved notes, newest first |
+| POST | `/kindness/notes` | Student | Body: `body` (required, up to 2000 characters), `recipient` (optional) |
+| DELETE | `/kindness/notes/{id}` | Student | Delete one of your notes (404 for anyone else's) |
 
 ## Safety, resources, and tools
 

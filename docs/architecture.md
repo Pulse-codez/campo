@@ -92,6 +92,8 @@ Limitations, stated plainly:
 | `counselling_sessions` | Student requests and bookings | Statuses: `requested`, `booked`, `completed`, `cancelled`. |
 | `conversations` | Chat threads | One user each. |
 | `messages` | Chat messages | Stores `risk_level` for each message. Bodies are not yet encrypted (see known issues). |
+| `monthly_reflections` | Monthly check-ins | One row per user and month (`period` as `YYYY-MM`). Unique on user and period. |
+| `kind_notes` | Notes a student writes to someone else | Private to the writer. Recipient name is optional. |
 | `audit_logs` | Record of sensitive actions | Written for logins, onboarding, consent changes, counselling status changes, and role changes. Reads are not audited yet. |
 
 Tables are created with `Base.metadata.create_all` at startup for development. Alembic is set up for production migrations, but no migration file has been generated yet. See [getting-started.md](getting-started.md).

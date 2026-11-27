@@ -16,7 +16,10 @@ This page is the honest picture: what works, what is placeholder, and what must 
 | Counselling requests and staff queue, scoped by university and consent | Working |
 | Staff role assignment through the admin endpoint | Working (no admin screen) |
 | Light and dark themes on every page | Working |
-| Automated backend tests (13) | Passing |
+| Monthly check-in (once a month, last week of the month, catch-up for three months) | Working |
+| Kind messages from Claude (needs an Anthropic key) and private kind notes | Working, key needed for messages |
+| Staying signed in through refresh tokens, cached university list | Working |
+| Automated backend tests (25) | Passing |
 
 ## 2. Placeholder or partial
 
@@ -48,6 +51,7 @@ This page is the honest picture: what works, what is placeholder, and what must 
 6. **Audit reads are not logged.** The spec requires an audit event for every read of a student record. Only writes and sign-ins are logged.
 7. **CORS regex allows any private-network address.** Fine for development. Narrow it or remove it for production.
 8. **`JWT_SECRET` in `backend/.env` is a development value.** Replace it before any shared use.
+9. **University email is not enforced by default.** `ENFORCE_UNIVERSITY_EMAIL=false` lets any email register, so accounts are not tied to a campus. Set it to `true` before a pilot, and add an email confirmation step.
 
 ### Data and clinical
 
@@ -61,6 +65,8 @@ This page is the honest picture: what works, what is placeholder, and what must 
 13. **Existing databases will not gain new columns.** `create_all` only creates missing tables. If your local database was created before the `concerns`, `therapist_key`, or `university_other_name` columns were added, drop and recreate it, or add the columns with a migration.
 14. **Chat history is loaded with a limit of 50 messages** and no paging. Long conversations lose older context.
 15. **The MCP server is started by hand.** There is no process manager or health check.
+16. **Monthly check-ins are stored as plain text.** Crisis words flag human contacts for the student, but no counsellor is notified. Consider notifying staff only with the student's consent.
+17. **The privacy settings screen was removed from navigation.** Students can no longer change consent from the app except through `/onboarding`, which is not linked anywhere. Add a settings screen before the pilot so consent stays revocable (spec Section 11).
 
 ## 4. Decisions needed from the project team
 

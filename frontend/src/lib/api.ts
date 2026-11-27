@@ -62,6 +62,35 @@ export interface Recommendation {
   show_crisis_resources: boolean;
 }
 
+export type KindTheme = "encouragement" | "hope" | "rest" | "self_kindness";
+
+export interface KindNote {
+  id: string;
+  recipient: string | null;
+  body: string;
+  created_at: string;
+}
+
+export interface CheckinEntry {
+  id: string;
+  period: string;
+  feelings: string;
+  direction: string;
+  created_at: string;
+}
+
+export interface CheckinStatus {
+  current_period: string;
+  open_periods: string[];
+  submitted_periods: string[];
+}
+
+export interface CheckinResult {
+  entry: CheckinEntry;
+  requires_human: boolean;
+  contacts: string[];
+}
+
 export interface TokenPair {
   access_token: string;
   refresh_token: string;
@@ -143,12 +172,38 @@ export function clearTokens() {
 }
 
 export function hasToken(): boolean {
-  return typeof window !== "undefined" && !!localStorage.getItem(ACCESS_KEY);
+  return typeof window !== "undefined" && (!!localStorage.getItem(ACCESS_KEY) || !!localStorage.getItem(REFRESH_KEY));
+}
+
+let refreshing: Promise<boolean> | null = null;
+
+/** Trades the refresh token for a new token pair. Concurrent callers share one request. */
+function refreshSession(): Promise<boolean> {
+  if (!refreshing) {
+    refreshing = (async () => {
+      const refresh = localStorage.getItem(REFRESH_KEY);
+      if (!refresh) return false;
+      try {
+        const res = await fetch(`${apiBase()}/auth/refresh`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${refresh}` },
+        });
+        if (!res.ok) return false;
+        saveTokens((await res.json()) as TokenPair);
+        return true;
+      } catch {
+        return false;
+      }
+    })().finally(() => {
+      refreshing = null;
+    });
+  }
+  return refreshing;
 }
 
 type ApiInit = Omit<RequestInit, "body"> & { json?: unknown; body?: BodyInit | null };
 
-async function request(path: string, init: ApiInit = {}): Promise<Response> {
+async function request(path: string, init: ApiInit = {}, retry = true): Promise<Response> {
   const { json, ...rest } = init;
   const headers = new Headers(init.headers);
   if (json !== undefined) headers.set("Content-Type", "application/json");
@@ -164,6 +219,12 @@ async function request(path: string, init: ApiInit = {}): Promise<Response> {
     });
   } catch {
     throw new ApiError(0, `cannot_reach_server:${apiBase()}`);
+  }
+
+  // An expired access token is renewed once from the refresh token, then the request is retried.
+  if (res.status === 401 && retry && !path.startsWith("/auth/")) {
+    if (await refreshSession()) return request(path, init, false);
+    clearTokens();
   }
 
   if (!res.ok) {
@@ -188,6 +249,31 @@ export async function api<T>(path: string, init?: ApiInit): Promise<T> {
 export async function apiBlob(path: string, init?: ApiInit): Promise<Blob> {
   const res = await request(path, init);
   return res.blob();
+}
+
+const UNIVERSITY_CACHE_KEY = "csc_universities";
+const UNIVERSITY_CACHE_MS = 24 * 60 * 60 * 1000;
+
+/** The university list rarely changes, so it is kept for a day to make the sign-up form open instantly. */
+export async function getUniversities(fresh = false): Promise<University[]> {
+  if (!fresh) {
+    try {
+      const raw = localStorage.getItem(UNIVERSITY_CACHE_KEY);
+      if (raw) {
+        const cached = JSON.parse(raw) as { at: number; list: University[] };
+        if (Date.now() - cached.at < UNIVERSITY_CACHE_MS && Array.isArray(cached.list)) return cached.list;
+      }
+    } catch {
+      // Unreadable cache: fetch again below.
+    }
+  }
+  const list = await api<University[]>("/universities");
+  try {
+    localStorage.setItem(UNIVERSITY_CACHE_KEY, JSON.stringify({ at: Date.now(), list }));
+  } catch {
+    // Storage full or blocked: the list still works, it is just not cached.
+  }
+  return list;
 }
 
 export function formatDateTime(iso: string): string {

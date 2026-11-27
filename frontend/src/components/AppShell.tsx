@@ -18,8 +18,8 @@ export function useUser(): User {
 
 const STUDENT_NAV = [
   { href: "/talk", label: "Talk" },
+  { href: "/checkin", label: "Monthly check-in" },
   { href: "/sessions", label: "Counselling" },
-  { href: "/onboarding", label: "Privacy" },
 ];
 
 const STAFF_NAV = [{ href: "/sessions", label: "Queue" }];

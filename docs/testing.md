@@ -9,7 +9,7 @@ cd backend
 uv run pytest
 ```
 
-Expected result: 13 passed.
+Expected result: 25 passed.
 
 Quieter output (useful because SQL logging is noisy):
 
@@ -24,6 +24,8 @@ DEBUG=false uv run pytest -q -p no:logging
 | `test_universities_are_seeded` | The seed list includes the expected universities |
 | `test_listed_universities_are_available` | All listed universities and `other` are present |
 | `test_registration_requires_university_email` | A Gmail address is refused for a listed university |
+| `test_any_email_registers_by_default` | Any email registers when the domain check is off |
+| `test_registration_requires_university_email` | With the check on, a Gmail address is refused for a listed university |
 | `test_other_university_requires_name_and_academic_email` | The `other` path needs a name and a `.ac.ke` or `.edu` email |
 | `test_student_onboarding_and_counselling_request` | Counselling is refused without consent, and allowed after onboarding with consent |
 | `test_crisis_message_gets_protocol_without_model` | A crisis message returns the protocol with `risk_level` crisis and does not call the model |
@@ -34,6 +36,17 @@ DEBUG=false uv run pytest -q -p no:logging
 | `test_recommendation_prioritises_safety` | Suicide outranks other concerns in the recommendation |
 | `test_onboarding_stores_recommended_therapist` | Onboarding saves the recommended therapist and concerns |
 | `test_onboarding_requires_a_concern` | Onboarding without a concern is refused |
+
+| `test_window_opens_in_last_seven_days_of_month` | Check-ins open from the 24th to the end of a 30-day month |
+| `test_past_months_are_always_open_for_catch_up` | Earlier months stay writable |
+| `test_writable_periods_skip_submitted_months` | Months already written are not offered again |
+| `test_check_writable_reasons` | Each refusal reason (future, too old, already submitted, outside window) |
+| `test_checkin_saves_once_per_period` | Saving works, and a second check-in for the same month is refused |
+| `test_checkin_refuses_future_period` | Future months are refused |
+| `test_checkin_crisis_text_flags_human_contacts` | Crisis words save the entry and return contacts |
+| `test_kind_message_needs_ai_key` | Without an Anthropic key the endpoint returns 503 |
+| `test_kind_message_returns_model_text` | The model reply is returned with whitespace trimmed (model call is mocked) |
+| `test_kind_notes_are_private_to_their_writer` | Notes are private, and only the writer can delete them |
 
 ### What is not covered yet
 

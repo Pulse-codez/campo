@@ -16,6 +16,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import select, update
 
+from app.core.config import get_settings
 from app.core.database import AsyncSessionLocal
 from app.main import app
 from app.models.university import University
@@ -107,7 +108,9 @@ async def test_universities_are_seeded(client):
     assert {"uon", "ku", "jkuat"} <= slugs
 
 
-async def test_registration_requires_university_email(client):
+async def test_registration_requires_university_email(client, monkeypatch):
+    monkeypatch.setenv("ENFORCE_UNIVERSITY_EMAIL", "true")
+    get_settings.cache_clear()
     resp = await client.post(
         "/auth/register",
         json={
@@ -116,8 +119,21 @@ async def test_registration_requires_university_email(client):
             "university_id": await uni_id("uon"),
         },
     )
+    get_settings.cache_clear()
     assert resp.status_code == 422
     assert resp.json()["detail"] == "email_domain_not_allowed"
+
+
+async def test_any_email_registers_by_default(client):
+    resp = await client.post(
+        "/auth/register",
+        json={
+            "email": f"{uuid.uuid4().hex[:8]}@gmail.com",
+            "password": "longpassword1",
+            "university_id": await uni_id("uon"),
+        },
+    )
+    assert resp.status_code == 201, resp.text
 
 
 async def test_student_onboarding_and_counselling_request(client):
@@ -259,7 +275,9 @@ async def test_listed_universities_are_available(client):
     assert {"uon", "kca", "strathmore", "tuk", "zetech", "daystar", "riara", "other"} <= names
 
 
-async def test_other_university_requires_name_and_academic_email(client):
+async def test_other_university_requires_name_and_academic_email(client, monkeypatch):
+    monkeypatch.setenv("ENFORCE_UNIVERSITY_EMAIL", "true")
+    get_settings.cache_clear()
     other = await uni_id("other")
     base = {"password": "longpassword1", "university_id": other}
 
@@ -279,3 +297,14 @@ async def test_other_university_requires_name_and_academic_email(client):
         json={**base, "email": f"{uuid.uuid4().hex[:8]}@mku.ac.ke", "other_university_name": "Mount Kenya University"},
     )
     assert ok.status_code == 201, ok.text
+    get_settings.cache_clear()
+
+
+def test_database_url_normalisation_for_neon_style_urls():
+    from app.core.config import normalise_database_url
+
+    neon = "postgresql://user:pw@host.example/neondb?sslmode=require&channel_binding=require"
+    assert normalise_database_url(neon) == "postgresql+asyncpg://user:pw@host.example/neondb?ssl=require"
+    assert normalise_database_url("postgres://u:p@h/db") == "postgresql+asyncpg://u:p@h/db"
+    local = "postgresql+asyncpg://campus:campus@localhost:5432/campus_support"
+    assert normalise_database_url(local) == local

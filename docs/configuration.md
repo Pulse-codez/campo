@@ -10,12 +10,13 @@ The backend reads these with pydantic-settings (`backend/app/core/config.py`). N
 |---|---|---|---|
 | `APP_ENV` | `development` | No | Environment label |
 | `DEBUG` | `true` | No | Turns on SQL echo in logs. Set to `false` for quieter output. |
-| `DATABASE_URL` | none | **Yes** | PostgreSQL URL, for example `postgresql+asyncpg://campus:campus@localhost:5432/campus_support` |
+| `DATABASE_URL` | none | **Yes** | PostgreSQL URL, for example `postgresql+asyncpg://campus:campus@localhost:5432/campus_support`. Plain `postgresql://` or `postgres://` URLs are converted automatically, and Neon's `sslmode` and `channel_binding` parameters are translated (see `normalise_database_url` in `backend/app/core/config.py`). |
 | `REDIS_URL` | `redis://localhost:6379/0` | No | Reserved for rate limiting. Not used yet. |
 | `JWT_SECRET` | none | **Yes** | Signing key for tokens. Use a long random value outside development. |
 | `JWT_ALGORITHM` | `HS256` | No | Token signing algorithm |
 | `JWT_ACCESS_TTL_MINUTES` | `15` | No | Access token lifetime |
 | `JWT_REFRESH_TTL_DAYS` | `14` | No | Refresh token lifetime |
+| `ENFORCE_UNIVERSITY_EMAIL` | `false` | No | When `false`, any email can register. When `true`, the email must end with the chosen university's domain, and unlisted (`other`) universities need `.ac.ke` or `.edu`. Turn on before a pilot. |
 | `FIELD_ENCRYPTION_KEY` | empty | No | Reserved for field-level encryption of message bodies. Not used yet. |
 | `ANTHROPIC_API_KEY` | empty | For chat | Claude API key |
 | `ANTHROPIC_MODEL` | `claude-sonnet-5-5` | No | Model name. Options: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`, `claude-fable-5-2`. |

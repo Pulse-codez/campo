@@ -15,7 +15,7 @@ import {
   AUTH_NOTICE,
 } from "@/components/auth/styles";
 import { destinationFor } from "@/lib/useAuth";
-import { apiBase, api, ApiError, saveTokens, type TokenPair, type University, type User } from "@/lib/api";
+import { apiBase, api, ApiError, getUniversities, saveTokens, type TokenPair, type University, type User } from "@/lib/api";
 
 type Tab = "signin" | "new";
 
@@ -198,7 +198,7 @@ function SignUpForm({ onCreated }: { onCreated: (email: string) => void }) {
 
   useEffect(() => {
     let active = true;
-    api<University[]>("/universities")
+    getUniversities(attempt > 0)
       .then((list) => {
         if (active) setUniversities(list);
       })

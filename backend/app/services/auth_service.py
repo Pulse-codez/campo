@@ -8,6 +8,7 @@ import bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.security import create_access_token, create_refresh_token
 from app.models.university import University
 from app.models.user import User
@@ -53,15 +54,16 @@ async def register_student(db: AsyncSession, data: UserRegister) -> User:
     university = await find_by_public_id(db, University, data.university_id)
     if university is None or not university.is_active:
         raise ValueError("university_not_found")
+    enforce = get_settings().enforce_university_email
     other_name = None
     if university.slug == "other":
         other_name = (data.other_university_name or "").strip()
         if not other_name:
             raise ValueError("other_university_name_required")
         domain = data.email.rsplit("@", 1)[-1].lower()
-        if not domain.endswith((".ac.ke", ".edu")):
+        if enforce and not domain.endswith((".ac.ke", ".edu")):
             raise ValueError("other_email_not_accepted")
-    elif not email_matches_university(data.email, university):
+    elif enforce and not email_matches_university(data.email, university):
         raise ValueError("email_domain_not_allowed")
 
     existing = await db.scalar(select(User).where(User.email == data.email.lower()))
