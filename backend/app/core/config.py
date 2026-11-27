@@ -1,11 +1,8 @@
 """Application configuration via pydantic-settings."""
 
 from functools import lru_cache
-<<<<<<< Updated upstream
 from pathlib import Path
-=======
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
->>>>>>> Stashed changes
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict

@@ -16,11 +16,8 @@ from app.api import (
     decision,
     escalation,
     health,
-<<<<<<< Updated upstream
-    knowledge,
-=======
     kindness,
->>>>>>> Stashed changes
+    knowledge,
     onboarding,
     peer,
     policy,
