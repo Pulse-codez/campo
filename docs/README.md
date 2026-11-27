@@ -11,6 +11,7 @@ Start here. Each document covers one part of the project.
 | [mcp-server.md](mcp-server.md) | The MCP policy and tool server and its five tools. |
 | [configuration.md](configuration.md) | Every environment variable, what it does, and its default. |
 | [testing.md](testing.md) | How to run the test suites and what they cover. |
+| [deployment.md](deployment.md) | Deploying the web app to Vercel, the API to Render, and the database on Neon. |
 | [status-and-known-issues.md](status-and-known-issues.md) | What is built, what is placeholder, and known problems. |
 
 ## Quick reference

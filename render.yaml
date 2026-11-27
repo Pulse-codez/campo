@@ -1,0 +1,67 @@
+# Render blueprint for the rafiki-chat backend API.
+# Render reads this file from the repository root when you create the service from the repo
+# (New, then Blueprint). Values marked `sync: false` are entered in the Render dashboard.
+# The frontend is deployed separately on Vercel (set NEXT_PUBLIC_API_BASE_URL there).
+
+services:
+  - type: web
+    name: rafiki-chat-api
+    runtime: python
+    region: virginia
+    plan: starter
+    rootDir: backend
+    buildCommand: pip install uv && uv sync --frozen --no-dev
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+
+      # App
+      - key: APP_ENV
+        # Keep "development" until Alembic migrations exist. In "production" the app skips table
+        # creation, so the database would stay empty.
+        value: development
+      - key: DEBUG
+        value: "false"
+
+      # Database: paste the full connection string from Neon (sync: false keeps it out of git)
+      - key: DATABASE_URL
+        sync: false
+
+      # Auth
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENFORCE_UNIVERSITY_EMAIL
+        # Set to "true" once the university email domains are verified.
+        value: "false"
+
+      # CORS: the live Vercel site. Replace with your real Vercel URL.
+      - key: CORS_ORIGINS
+        value: '["https://YOUR-APP.vercel.app"]'
+      - key: CORS_ORIGIN_REGEX
+        # A pattern that matches nothing, so only CORS_ORIGINS is allowed in production.
+        value: "(?!)"
+
+      # Claude (kind messages and chat)
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5-5
+
+      # ElevenLabs (voice)
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: ELEVENLABS_VOICE_ID_FEMALE
+        sync: false
+      - key: ELEVENLABS_VOICE_ID_MALE
+        sync: false
+      - key: ELEVENLABS_CRISIS_VOICE_ID
+        sync: false
+
+      # MCP tool server (deploy separately, then set its URL here)
+      - key: MCP_SERVER_URL
+        sync: false

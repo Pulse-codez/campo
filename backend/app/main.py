@@ -6,6 +6,7 @@ from anthropic import APIError, AuthenticationError
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 from app.api import (
     admin,
@@ -39,6 +40,9 @@ async def lifespan(app: FastAPI):
     # Dev convenience only. Production schema changes go through Alembic.
     if get_settings().app_env != "production":
         async with engine.begin() as conn:
+            if engine.dialect.name == "postgresql":
+                # Knowledge chunks store embeddings in a pgvector column. Neon needs the extension enabled first.
+                await conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
             await conn.run_sync(Base.metadata.create_all)
         async with AsyncSessionLocal() as db:
             await seed_universities(db)
