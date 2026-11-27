@@ -3,7 +3,6 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # The repo keeps one .env at the project root, not inside backend/.
@@ -26,11 +25,6 @@ class Settings(BaseSettings):
 
     # AES-GCM key for message bodies at rest. Derive 32 bytes with SHA-256.
     field_encryption_key: str = ""
-
-    cors_origins: list[str] = Field(
-        default_factory=lambda: ["http://localhost:3000"],
-        description="Exact browser origins allowed to call the API",
-    )
 
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"
@@ -58,6 +52,16 @@ class Settings(BaseSettings):
     mcp_server_url: str = "http://localhost:8001/mcp"
     mcp_timeout_seconds: float = 15.0
     mcp_auth_token: str = ""
+
+    # Development: any localhost or private-network address on any port (for LAN testing).
+    cors_origin_regex: str = r"https?://(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?"
+
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3100",
+        "http://127.0.0.1:3100",
+    ]
 
     sentry_dsn: str = ""
     langfuse_public_key: str = ""

@@ -3,6 +3,7 @@
 from fastapi import APIRouter, HTTPException
 
 from app.api.deps import CurrentUser, DbSession, StudentUser
+from app.core.therapists import CONCERNS, THERAPISTS, normalise_concerns, recommend
 from app.models.consent import CONSENT_SCOPES
 from app.schemas.auth import UserOut
 from app.schemas.onboarding import ConsentIn, ConsentOut, OnboardingIn
@@ -17,6 +18,12 @@ async def complete_onboarding(body: OnboardingIn, db: DbSession, user: StudentUs
     unknown = set(body.consents) - set(CONSENT_SCOPES)
     if unknown:
         raise HTTPException(status_code=422, detail=f"unknown_scopes: {sorted(unknown)}")
+    invalid_concerns = set(body.concerns) - set(CONCERNS)
+    if invalid_concerns:
+        raise HTTPException(status_code=422, detail=f"unknown_concerns: {sorted(invalid_concerns)}")
+    concerns = normalise_concerns(body.concerns)
+    if not concerns:
+        raise HTTPException(status_code=422, detail="concerns_required")
 
     wants_contact = body.consents.get("emergency_contact", False)
     if wants_contact and not (body.emergency_contact_name and body.emergency_contact_phone):
@@ -36,6 +43,9 @@ async def complete_onboarding(body: OnboardingIn, db: DbSession, user: StudentUs
         user.field_of_study = body.field_of_study
     if body.voice_preference is not None:
         user.voice_preference = body.voice_preference
+    user.concerns = ",".join(concerns)
+    chosen = body.therapist_key if body.therapist_key in THERAPISTS else recommend(concerns).key
+    user.therapist_key = chosen
     user.emergency_contact_name = body.emergency_contact_name if wants_contact else None
     user.emergency_contact_phone = body.emergency_contact_phone if wants_contact else None
 

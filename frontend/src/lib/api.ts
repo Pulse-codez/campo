@@ -1,4 +1,12 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
+/**
+ * Backend address. Uses NEXT_PUBLIC_API_BASE_URL when set. Otherwise it targets port 8000 on the
+ * same host the page was opened from, so localhost and LAN addresses both work during development.
+ */
+export function apiBase(): string {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+  if (typeof window !== "undefined") return `http://${window.location.hostname}:8000`;
+  return "http://localhost:8000";
+}
 
 const ACCESS_KEY = "csc_access";
 const REFRESH_KEY = "csc_refresh";
@@ -23,6 +31,8 @@ export interface User {
   year_of_study: number | null;
   field_of_study: StudyField;
   voice_preference: VoicePreference;
+  concerns: string[];
+  therapist_key: string | null;
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
@@ -33,6 +43,23 @@ export interface University {
   name: string;
   slug: string;
   domains: string[];
+}
+
+export interface Concern {
+  key: string;
+  label: string;
+}
+
+export interface Therapist {
+  key: string;
+  name: string;
+  focus: string;
+}
+
+export interface Recommendation {
+  primary: Therapist;
+  alternatives: Therapist[];
+  show_crisis_resources: boolean;
 }
 
 export interface TokenPair {
@@ -128,11 +155,16 @@ async function request(path: string, init: ApiInit = {}): Promise<Response> {
   const token = typeof window !== "undefined" ? localStorage.getItem(ACCESS_KEY) : null;
   if (token) headers.set("Authorization", `Bearer ${token}`);
 
-  const res = await fetch(`${API_BASE}${path}`, {
-    ...rest,
-    headers,
-    body: json !== undefined ? JSON.stringify(json) : rest.body,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${apiBase()}${path}`, {
+      ...rest,
+      headers,
+      body: json !== undefined ? JSON.stringify(json) : rest.body,
+    });
+  } catch {
+    throw new ApiError(0, `cannot_reach_server:${apiBase()}`);
+  }
 
   if (!res.ok) {
     let detail = res.statusText || "request_failed";

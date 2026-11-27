@@ -27,6 +27,8 @@ REGISTER_ERRORS = {
     "university_not_found": 422,
     "email_domain_not_allowed": 422,
     "email_already_registered": status.HTTP_409_CONFLICT,
+    "other_university_name_required": 422,
+    "other_email_not_accepted": 422,
 }
 
 

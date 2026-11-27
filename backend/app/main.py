@@ -21,6 +21,7 @@ from app.api import (
     safety,
     speech,
     study,
+    therapists,
     universities,
 )
 from app.core.config import get_settings
@@ -41,6 +42,8 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
+settings = get_settings()
+
 app = FastAPI(
     title="Campus Support Companion",
     version="0.1.0",
@@ -49,7 +52,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=get_settings().cors_origins,
+    allow_origins=settings.cors_origins,
+    allow_origin_regex=settings.cors_origin_regex,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -69,6 +73,7 @@ for router in (
     resources.router,
     escalation.router,
     study.router,
+    therapists.router,
     decision.router,
     policy.router,
     knowledge.router,

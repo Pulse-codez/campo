@@ -48,12 +48,12 @@ export default function ConditionCards() {
             <Link
               key={c.id}
               href="/talk"
-              className="card text-center hover:border-[rgba(111,200,255,0.45)] group"
+              className="card text-center hover:border-[rgb(var(--link)/0.45)] group"
             >
-              <h3 className="font-semibold text-base mb-1 group-hover:text-[#6FC8FF] transition-colors">
+              <h3 className="font-semibold text-base mb-1 group-hover:text-[rgb(var(--link))] transition-colors">
                 {c.label}
               </h3>
-              <p className="text-xs text-[rgba(238,243,255,0.62)]">
+              <p className="text-xs text-[rgb(var(--fg)/0.62)]">
                 {c.description}
               </p>
             </Link>

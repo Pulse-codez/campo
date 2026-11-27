@@ -43,8 +43,15 @@ class User(ShortIdModel):
 
     emergency_contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     emergency_contact_phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    university_other_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    concerns: Mapped[str | None] = mapped_column(String(255), nullable=True)  # comma-separated keys
+    therapist_key: Mapped[str | None] = mapped_column(String(32), nullable=True)
 
     university: Mapped["University"] = relationship(back_populates="users")
+    @property
+    def concerns_list(self) -> list[str]:
+        return [c for c in (self.concerns or "").split(",") if c]
+
     conversations: Mapped[list["Conversation"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

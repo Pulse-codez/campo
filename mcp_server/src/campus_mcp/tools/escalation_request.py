@@ -1,4 +1,4 @@
-"""escalation_request — route a student to human support when needed."""
+"""escalation_request: route a student to human support when needed."""
 
 import uuid
 from typing import Literal

@@ -38,6 +38,7 @@ class State(TypedDict, total=False):
     conversation_id: str
     previous_level: str | None
     assessment: dict[str, Any] | None
+    persona: str
     safety_level: str
     requires_human: bool
     safety_reasons: list[str]
@@ -95,6 +96,8 @@ async def retrieve_context(state: State) -> dict[str, Any]:
 
 async def generate(state: State) -> dict[str, Any]:
     system = SYSTEM_PROMPT
+    if state.get("persona"):
+        system = f"{system}\n\n{state['persona']}"
     if state.get("mcp_context"):
         system = f"{system}\n\n{state['mcp_context']}"
     messages = [{"role": "system", "content": system}, *state.get("messages", [])]

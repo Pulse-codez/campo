@@ -52,9 +52,9 @@ export default function SystemFacts() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {FACTS.map((f) => (
             <div key={f.label} className="panel">
-              <p className="text-3xl font-bold text-[#6FC8FF]">{f.figure}</p>
+              <p className="text-3xl font-bold text-[rgb(var(--link))]">{f.figure}</p>
               <p className="font-semibold mt-2 leading-snug">{f.label}</p>
-              <p className="text-sm text-[rgba(238,243,255,0.6)] mt-2 leading-relaxed">{f.detail}</p>
+              <p className="text-sm text-[rgb(var(--fg)/0.6)] mt-2 leading-relaxed">{f.detail}</p>
             </div>
           ))}
         </div>

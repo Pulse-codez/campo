@@ -1,4 +1,4 @@
-"""study_planner — build study plans that respect mental health capacity."""
+"""study_planner: build study plans that respect mental health capacity."""
 
 from typing import Literal
 

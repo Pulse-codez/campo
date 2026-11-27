@@ -8,6 +8,8 @@ from app.schemas.auth import Gender, StudyField, VoicePreference
 
 
 class OnboardingIn(BaseModel):
+    concerns: list[str] = Field(default_factory=list, max_length=10)
+    therapist_key: str | None = Field(None, max_length=32)
     consents: dict[str, bool] = Field(default_factory=dict)
     gender: Gender | None = None
     year_of_study: int | None = Field(None, ge=1, le=10)

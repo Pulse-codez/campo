@@ -3,14 +3,16 @@
 // @ts-nocheck
 "use client"
 import FibreArc from "@/components/originkit/ui/hero-49/fibre-arc";
+import ThemeToggle, { useTheme } from "@/components/ThemeToggle";
 
 export function SectionHero() {
+  const light = useTheme() === "light";
   return (
     <div className="hero-49">
     <>
       <div id="fibre">
         <FibreArc
-          background="#01030A"
+          background={light ? "#F4F7FC" : "#01030A"}
           baseColor="#1B4FD8"
           accentColor="#6FC8FF"
           highlight="#FFFFFF"
@@ -30,8 +32,9 @@ export function SectionHero() {
           <a href="#features">What you can do</a>
           <a href="#conditions">Topics</a>
           <a href="#facts">How it is built</a>
-          <a href="/register">Sign up</a>
+          <a href="/login?tab=new">Sign up</a>
         </nav>
+        <ThemeToggle />
         <a className="cta" href="/login">
           Log in
         </a>
@@ -46,10 +49,10 @@ export function SectionHero() {
         <p className="sub">
           A private space for university students in Kenya to find campus
           resources, plan around your energy, and reach a human when you need
-          one — no judgment, no waiting.
+          one. No judgment, no waiting.
         </p>
         <div className="buttons">
-          <a className="btn" href="/register">
+          <a className="btn" href="/login?tab=new">
             Get support{" "}
             <svg
               width="16"

@@ -30,6 +30,31 @@ async def client():
             yield c
 
 
+async def test_mcp_proxy_routes_require_credentials(client):
+    """These routes must never be callable by an unauthenticated network client."""
+    option = {"id": "a", "label": "Option A", "pros": ["calm"], "cons": ["slow"]}
+    cases = [
+        ("POST", "/safety/check", {"text": "I feel stressed"}),
+        ("POST", "/resources/find", {"resource_type": "counselling"}),
+        ("POST", "/escalation/request", {"reason": "test request"}),
+        ("POST", "/study/plan", {"units": ["BIO 101"], "hours_per_week": 4}),
+        (
+            "POST",
+            "/decision/evaluate",
+            {"situation": "Choosing a path", "options": [option, {**option, "id": "b", "label": "Option B"}], "values": ["calm"]},
+        ),
+        ("GET", "/policies/search", None),
+    ]
+    for method, path, payload in cases:
+        response = await client.request(
+            method,
+            path,
+            json=payload,
+            params={"q": "bursary"} if method == "GET" else None,
+        )
+        assert response.status_code == 401, (path, response.status_code, response.text)
+
+
 async def uni_id(slug: str) -> str:
     async with AsyncSessionLocal() as db:
         uni = await db.scalar(select(University).where(University.slug == slug))
@@ -51,13 +76,18 @@ async def register(client, slug: str, email_domain: str) -> dict:
     return {"Authorization": f"Bearer {resp.json()['access_token']}"}
 
 
-async def onboard(client, headers, counselling: bool) -> None:
+async def onboard(client, headers, counselling: bool, concerns=("stress",)) -> dict:
     resp = await client.post(
         "/onboarding",
         headers=headers,
-        json={"consents": {"counselling": counselling}, "policy_version": "v1.0"},
+        json={
+            "concerns": list(concerns),
+            "consents": {"counselling": counselling},
+            "policy_version": "v1.0",
+        },
     )
     assert resp.status_code == 200, resp.text
+    return resp.json()
 
 
 async def make_staff(client, slug: str, domain: str, role: str) -> dict:
@@ -187,3 +217,65 @@ async def test_revoked_consent_hides_request_from_staff(client):
 
     after = (await client.get("/counselling-sessions", headers=staff)).json()
     assert all(s["id"] != session_id for s in after)
+
+
+async def test_concerns_list_is_public_to_authenticated_users(client):
+    headers = await register(client, "uon", "uonbi.ac.ke")
+    resp = await client.get("/concerns", headers=headers)
+    assert resp.status_code == 200
+    assert {c["key"] for c in resp.json()} == {"family_issues", "stress", "peer_pressure", "suicide", "other"}
+
+
+async def test_recommendation_prioritises_safety(client):
+    headers = await register(client, "uon", "uonbi.ac.ke")
+    resp = await client.post(
+        "/therapists/recommend", headers=headers, json={"concerns": ["stress", "suicide"]}
+    )
+    body = resp.json()
+    assert body["primary"]["key"] == "steady"
+    assert body["show_crisis_resources"] is True
+
+
+async def test_onboarding_stores_recommended_therapist(client):
+    headers = await register(client, "uon", "uonbi.ac.ke")
+    user = await onboard(client, headers, counselling=False, concerns=("family_issues",))
+    assert user["therapist_key"] == "bridge"
+    assert user["concerns"] == ["family_issues"]
+
+
+async def test_onboarding_requires_a_concern(client):
+    headers = await register(client, "uon", "uonbi.ac.ke")
+    resp = await client.post(
+        "/onboarding",
+        headers=headers,
+        json={"concerns": [], "consents": {}, "policy_version": "v1.0"},
+    )
+    assert resp.status_code == 422
+
+
+async def test_listed_universities_are_available(client):
+    resp = await client.get("/universities")
+    names = {u["slug"] for u in resp.json()}
+    assert {"uon", "kca", "strathmore", "tuk", "zetech", "daystar", "riara", "other"} <= names
+
+
+async def test_other_university_requires_name_and_academic_email(client):
+    other = await uni_id("other")
+    base = {"password": "longpassword1", "university_id": other}
+
+    missing_name = await client.post(
+        "/auth/register", json={**base, "email": f"{uuid.uuid4().hex[:8]}@gmail.com"}
+    )
+    assert missing_name.json()["detail"] == "other_university_name_required"
+
+    not_academic = await client.post(
+        "/auth/register",
+        json={**base, "email": f"{uuid.uuid4().hex[:8]}@gmail.com", "other_university_name": "Mount Kenya"},
+    )
+    assert not_academic.json()["detail"] == "other_email_not_accepted"
+
+    ok = await client.post(
+        "/auth/register",
+        json={**base, "email": f"{uuid.uuid4().hex[:8]}@mku.ac.ke", "other_university_name": "Mount Kenya University"},
+    )
+    assert ok.status_code == 201, ok.text

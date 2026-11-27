@@ -1,4 +1,4 @@
-"""policy_search — search campus support policies."""
+"""policy_search: search campus support policies."""
 
 
 from typing import Literal

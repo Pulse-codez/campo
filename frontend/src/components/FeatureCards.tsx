@@ -4,7 +4,7 @@ const features = [
   {
     title: "Find campus resources",
     description:
-      "Counselling, health clinic, peer support, legal aid, and emergency contacts — all in one place.",
+      "Counselling, health clinic, peer support, legal aid, and emergency contacts, all in one place.",
   },
   {
     title: "Study planner",
@@ -29,13 +29,13 @@ export default function FeatureCards() {
       <div className="container">
         <h2 className="section-title">What you can do here</h2>
         <p className="section-subtitle">
-          Tools designed around how student life actually feels — not how it looks on a brochure.
+          Tools designed around how student life actually feels, not how it looks on a brochure.
         </p>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((f) => (
             <div key={f.title} className="card">
               <h3 className="font-semibold text-lg mb-2 text-white">{f.title}</h3>
-              <p className="text-sm text-[rgba(238,243,255,0.62)] leading-relaxed">
+              <p className="text-sm text-[rgb(var(--fg)/0.62)] leading-relaxed">
                 {f.description}
               </p>
             </div>

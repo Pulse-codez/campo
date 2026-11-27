@@ -10,6 +10,7 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.therapists import persona_prompt
 from app.models.user import User
 from app.orchestrator.graph import build_graph
 from app.safety.classifier import assess as classify
@@ -94,6 +95,7 @@ async def run_turn(
             "conversation_id": str(conv.id),
             "assessment": applied,
             "previous_level": previous_level,
+            "persona": persona_prompt(user.therapist_key) if user else "",
         }
     )
 
