@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-import { api, clearTokens, hasToken, type User } from "@/lib/api";
+import { api, clearTokens, hasToken, type Role, type User } from "@/lib/api";
 
 const UserContext = createContext<User | null>(null);
 
@@ -25,6 +25,15 @@ const STAFF_NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/sessions", label: "Queue" },
 ];
+
+// Navigation mirrors backend RBAC. Admin-only screens have no page yet, so
+// admins get the staff navigation until those routes are built.
+const NAV_BY_ROLE: Record<Role, typeof STUDENT_NAV> = {
+  student: STUDENT_NAV,
+  peer_counsellor: STAFF_NAV,
+  counsellor: STAFF_NAV,
+  admin: STAFF_NAV,
+};
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -55,7 +64,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
     );
   }
 
-  const nav = user.role === "student" ? STUDENT_NAV : STAFF_NAV;
+  const nav = NAV_BY_ROLE[user.role] ?? STUDENT_NAV;
 
   function logout() {
     clearTokens();

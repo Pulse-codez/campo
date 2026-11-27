@@ -6,12 +6,12 @@ from datetime import datetime
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import TimestampedModel
+from app.models.base import ShortIdModel
 
 SESSION_STATUSES = ("requested", "booked", "completed", "cancelled")
 
 
-class CounsellingSession(TimestampedModel):
+class CounsellingSession(ShortIdModel):
     __tablename__ = "counselling_sessions"
 
     university_id: Mapped[uuid.UUID] = mapped_column(

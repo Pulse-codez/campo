@@ -1,22 +1,20 @@
 """Policy search endpoint (delegates to MCP server)."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Query
 
-from app.services.mcp_client import MCPClient
+from app.api.deps import McpActor
+from app.services.mcp_client import call_mcp_tool
 
 router = APIRouter(prefix="/policies", tags=["policies"])
 
 
 @router.get("/search")
-async def search_policies(q: str, category: str | None = None, limit: int = 5):
-    client = MCPClient()
-    try:
-        result = await client.call_tool(
-            "search_policies",
-            {"query": q, "category": category, "limit": limit},
-        )
-        return result
-    except Exception as exc:  # pragma: no cover
-        raise HTTPException(status_code=502, detail=f"mcp_unavailable: {exc}") from exc
-    finally:
-        await client.close()
+async def search_policies(
+    _actor: McpActor,  # registered account or anonymous token; RBAC enforced
+    q: str = Query(..., min_length=1, max_length=500),
+    category: str | None = None,
+    limit: int = Query(5, ge=1, le=20),
+):
+    return await call_mcp_tool(
+        "search_policies", {"query": q, "category": category, "limit": limit}
+    )

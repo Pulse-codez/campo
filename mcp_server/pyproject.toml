@@ -1,7 +1,7 @@
 [project]
 name = "campus-mcp"
 version = "0.1.0"
-description = "Add your description here"
+description = "FastMCP policy and support tool server for the Campus Support Companion"
 authors = [
     { name = "Taz", email = "christiantazma77@gmail.com" }
 ]
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-campus-mcp-server = "campus_mcp_server:main"
+campus-mcp-server = "campus_mcp.server:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]

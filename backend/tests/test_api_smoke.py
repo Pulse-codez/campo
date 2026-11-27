@@ -33,7 +33,7 @@ async def client():
 async def uni_id(slug: str) -> str:
     async with AsyncSessionLocal() as db:
         uni = await db.scalar(select(University).where(University.slug == slug))
-        return str(uni.id)
+        return uni.public_id
 
 
 async def register(client, slug: str, email_domain: str) -> dict:
@@ -64,7 +64,8 @@ async def make_staff(client, slug: str, domain: str, role: str) -> dict:
     headers = await register(client, slug, domain)
     me = (await client.get("/auth/me", headers=headers)).json()
     async with AsyncSessionLocal() as db:
-        await db.execute(update(User).where(User.id == uuid.UUID(me["id"])).values(role=role))
+        internal_id = await db.scalar(select(User.id).where(User.public_id == me["id"]))
+        await db.execute(update(User).where(User.id == internal_id).values(role=role))
         await db.commit()
     return headers
 

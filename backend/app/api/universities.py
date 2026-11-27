@@ -15,4 +15,4 @@ async def list_universities(db: DbSession):
     result = await db.execute(
         select(University).where(University.is_active.is_(True)).order_by(University.name)
     )
-    return list(result.scalars().all())
+    return [UniversityOut.from_university(u) for u in result.scalars().all()]

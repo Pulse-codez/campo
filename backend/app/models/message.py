@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import TimestampedModel
+from app.models.base import ShortIdModel
 
 if TYPE_CHECKING:
     from app.models.conversation import Conversation
 
 
-class Message(TimestampedModel):
+class Message(ShortIdModel):
     __tablename__ = "messages"
 
     conversation_id: Mapped[uuid.UUID] = mapped_column(

@@ -6,14 +6,23 @@ const REFRESH_KEY = "csc_refresh";
 export type Role = "student" | "peer_counsellor" | "counsellor" | "admin";
 export type ConsentScope = "counselling" | "emergency_contact" | "research" | "analytics";
 export type SessionStatus = "requested" | "booked" | "completed" | "cancelled";
+export type Gender = "female" | "male" | "non_binary" | "prefer_not_to_say";
+export type StudyField = "tech" | "art" | "other";
+// auto = opposite gender voice; male/female = explicit choice.
+export type VoicePreference = "auto" | "male" | "female";
 
 export interface User {
+  // 5-character public ID (uppercase letters and digits). Internal UUIDs are never exposed.
   id: string;
   email: string;
   full_name: string | null;
   role: Role;
   university_id: string;
   onboarded: boolean;
+  gender: Gender | null;
+  year_of_study: number | null;
+  field_of_study: StudyField;
+  voice_preference: VoicePreference;
   is_active: boolean;
   is_verified: boolean;
   created_at: string;
@@ -36,6 +45,7 @@ export interface Conversation {
   id: string;
   title: string | null;
   is_archived: boolean;
+  mode: "ai" | "peer";
   created_at: string;
   updated_at: string;
 }
@@ -55,6 +65,10 @@ export interface ChatTurn {
   assistant_content: string;
   risk_level: string;
   requires_human: boolean;
+  mode: "ai" | "peer";
+  crisis_contacts: string[];
+  safety_reasons: string[];
+  ticket_id: string | null;
 }
 
 export interface VoiceTurn {

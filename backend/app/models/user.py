@@ -3,10 +3,10 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, ForeignKey, String, text
+from sqlalchemy import Boolean, ForeignKey, Integer, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import TimestampedModel
+from app.models.base import ShortIdModel
 
 if TYPE_CHECKING:
     from app.models.consent import ConsentRecord
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 ROLES = ("student", "peer_counsellor", "counsellor", "admin")
 
 
-class User(TimestampedModel):
+class User(ShortIdModel):
     __tablename__ = "users"
 
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
@@ -29,6 +29,18 @@ class User(TimestampedModel):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     onboarded: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+
+    # Broad, non-identifying profile used only for peer matching.
+    gender: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    year_of_study: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    field_of_study: Mapped[str] = mapped_column(
+        String(32), default="other", server_default=text("'other'")
+    )
+    # auto = opposite of the user's gender; male/female = explicit choice.
+    voice_preference: Mapped[str] = mapped_column(
+        String(16), default="auto", server_default=text("'auto'")
+    )
+
     emergency_contact_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     emergency_contact_phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
 

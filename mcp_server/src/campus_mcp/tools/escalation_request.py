@@ -1,19 +1,22 @@
 """escalation_request — route a student to human support when needed."""
 
+import uuid
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
+from campus_mcp.safety import is_crisis
+
+Urgency = Literal["routine", "urgent", "crisis"]
+PreferredChannel = Literal[
+    "counselling", "health_clinic", "peer_support", "security", "other"
+]
+
 
 class EscalationInput(BaseModel):
-    reason: str = Field(..., description="Why the student needs human support")
-    urgency: str = Field(
-        "routine",
-        description="Urgency level: routine, urgent, crisis",
-    )
-    preferred_channel: str | None = Field(
-        None,
-        description="Preferred channel: counselling, health_clinic, peer_support, security, other",
-    )
+    reason: str = Field(..., min_length=1, max_length=5000)
+    urgency: Urgency = Field("routine", description="routine | urgent | crisis")
+    preferred_channel: PreferredChannel | None = Field(None)
 
 
 class EscalationOutput(BaseModel):
@@ -30,16 +33,17 @@ def request_escalation(
     urgency: str = "routine",
     preferred_channel: str | None = None,
 ) -> EscalationOutput:
-    """Create an escalation to human support and return immediate actions.
+    """Create an escalation and return immediate actions.
 
-    Placeholder implementation. Wire this to the university's ticketing or
-    case-management system before production. Crisis cases are never queued —
-    they are given direct emergency contacts.
+    Crisis cases are never queued — they get direct emergency contacts. Ticket
+    IDs are deterministic (uuid5) so retries do not generate new references.
     """
-    crisis_keywords = ["suicide", "kill myself", "end it", "self harm", "hurt myself", "overdose"]
-    is_crisis = urgency == "crisis" or any(k in reason.lower() for k in crisis_keywords)
+    params = EscalationInput(
+        reason=reason, urgency=urgency, preferred_channel=preferred_channel
+    )
+    crisis_flag = params.urgency == "crisis" or is_crisis(params.reason)
 
-    if is_crisis:
+    if crisis_flag:
         return EscalationOutput(
             ticket_id="CRISIS-IMMEDIATE",
             status="crisis",
@@ -57,17 +61,21 @@ def request_escalation(
             is_crisis=True,
         )
 
+    ticket_uuid = uuid.uuid5(
+        uuid.NAMESPACE_URL,
+        f"campo:escalation:{params.reason}|{params.urgency}|{params.preferred_channel}",
+    )
     contacts = [
         "University Counselling Centre: +254 700 000 100",
         "Campus Health Clinic: +254 700 000 101",
     ]
-    if preferred_channel == "peer_support":
+    if params.preferred_channel == "peer_support":
         contacts.append("Peer Support Network: peersupport@university.ac.ke")
-    if preferred_channel == "security":
+    if params.preferred_channel == "security":
         contacts.append("Campus Security: +254 700 000 999")
 
     return EscalationOutput(
-        ticket_id=f"ESC-{abs(hash(reason)) % 100000:05d}",
+        ticket_id=f"ESC-{str(ticket_uuid)[:8].upper()}",
         status="received",
         estimated_response="within 24 hours (routine) or 4 hours (urgent)",
         contacts=contacts,

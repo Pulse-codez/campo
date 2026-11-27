@@ -13,7 +13,9 @@ from app.api import (
     decision,
     escalation,
     health,
+    knowledge,
     onboarding,
+    peer,
     policy,
     resources,
     safety,
@@ -21,6 +23,7 @@ from app.api import (
     study,
     universities,
 )
+from app.core.config import get_settings
 from app.core.database import AsyncSessionLocal, engine
 from app.models.base import Base
 from app.services.seed import seed_universities
@@ -28,11 +31,12 @@ from app.services.seed import seed_universities
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Dev convenience: create tables and seed universities. Production uses Alembic migrations.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    async with AsyncSessionLocal() as db:
-        await seed_universities(db)
+    # Dev convenience only. Production schema changes go through Alembic.
+    if get_settings().app_env != "production":
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        async with AsyncSessionLocal() as db:
+            await seed_universities(db)
     yield
     await engine.dispose()
 
@@ -45,7 +49,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=get_settings().cors_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,6 +61,7 @@ for router in (
     auth.router,
     onboarding.router,
     conversations.router,
+    peer.router,
     counselling.router,
     speech.router,
     admin.router,
@@ -66,6 +71,7 @@ for router in (
     study.router,
     decision.router,
     policy.router,
+    knowledge.router,
 ):
     app.include_router(router)
 

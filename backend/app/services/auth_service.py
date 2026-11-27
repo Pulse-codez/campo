@@ -1,5 +1,9 @@
 """Auth service: university-scoped registration, login, token issue."""
 
+import asyncio
+import base64
+import hashlib
+
 import bcrypt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,14 +12,36 @@ from app.core.security import create_access_token, create_refresh_token
 from app.models.university import University
 from app.models.user import User
 from app.schemas.auth import TokenResponse, UserLogin, UserRegister
+from app.services.id_service import find_by_public_id
+
+
+def _password_bytes(password: str) -> bytes:
+    """Pre-hash so bcrypt's 72-byte limit never truncates a password."""
+    digest = hashlib.sha256(password.encode("utf-8")).digest()
+    return base64.b64encode(digest)
 
 
 def hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    return bcrypt.hashpw(_password_bytes(password), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return bcrypt.checkpw(plain.encode("utf-8"), hashed.encode("utf-8"))
+    # New hashes use the SHA-256 pre-hash; accept legacy raw bcrypt hashes too.
+    for candidate in (_password_bytes(plain), plain.encode("utf-8")[:72]):
+        try:
+            if bcrypt.checkpw(candidate, hashed.encode("utf-8")):
+                return True
+        except (TypeError, ValueError):
+            continue
+    return False
+
+
+async def hash_password_async(password: str) -> str:
+    return await asyncio.to_thread(hash_password, password)
+
+
+async def verify_password_async(plain: str, hashed: str) -> bool:
+    return await asyncio.to_thread(verify_password, plain, hashed)
 
 
 def email_matches_university(email: str, university: University) -> bool:
@@ -24,22 +50,26 @@ def email_matches_university(email: str, university: University) -> bool:
 
 
 async def register_student(db: AsyncSession, data: UserRegister) -> User:
-    university = await db.get(University, data.university_id)
+    university = await find_by_public_id(db, University, data.university_id)
     if university is None or not university.is_active:
         raise ValueError("university_not_found")
     if not email_matches_university(data.email, university):
         raise ValueError("email_domain_not_allowed")
 
-    existing = await db.scalar(select(User).where(User.email == data.email))
+    existing = await db.scalar(select(User).where(User.email == data.email.lower()))
     if existing:
         raise ValueError("email_already_registered")
 
     user = User(
         email=data.email.lower(),
-        password_hash=hash_password(data.password),
+        password_hash=await hash_password_async(data.password),
         full_name=data.full_name,
         role="student",
         university_id=university.id,
+        gender=data.gender,
+        year_of_study=data.year_of_study,
+        field_of_study=data.field_of_study,
+        voice_preference=data.voice_preference,
     )
     db.add(user)
     await db.commit()
@@ -49,7 +79,7 @@ async def register_student(db: AsyncSession, data: UserRegister) -> User:
 
 async def authenticate(db: AsyncSession, data: UserLogin) -> User | None:
     user = await db.scalar(select(User).where(User.email == data.email.lower()))
-    if user is None or not verify_password(data.password, user.password_hash):
+    if user is None or not await verify_password_async(data.password, user.password_hash):
         return None
     if not user.is_active:
         return None

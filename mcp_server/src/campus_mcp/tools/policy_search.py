@@ -1,12 +1,28 @@
 """policy_search — search campus support policies."""
 
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+PolicyCategory = Literal[
+    "mental_health",
+    "academic_accommodation",
+    "sexual_harassment",
+    "financial_aid",
+    "housing",
+    "conduct",
+    "other",
+]
 
 
 class PolicySearchInput(BaseModel):
-    query: str = Field(..., description="What the student is looking for, e.g. 'mental health leave of absence'")
-    category: str | None = Field(
+    query: str = Field(
+        ...,
+        min_length=1,
+        description="What the student is looking for, e.g. 'mental health leave of absence'",
+    )
+    category: PolicyCategory | None = Field(
         None,
         description="Policy category: mental_health, academic_accommodation, sexual_harassment, financial_aid, housing, conduct, other",
     )
@@ -26,10 +42,10 @@ class PolicyResult(BaseModel):
 def search_policies(query: str, category: str | None = None, limit: int = 5) -> list[PolicyResult]:
     """Search campus policies relevant to student wellbeing and support.
 
-    This is a placeholder implementation. Replace the static catalogue with a
-    real policy index (e.g. backed by a document store or the university's
-    policy API) before production use.
+    This uses a static catalogue. Replace it with a real policy index (e.g. a
+    document store or the university's policy API) before production.
     """
+    params = PolicySearchInput(query=query, category=category, limit=limit)
     catalogue = [
         PolicyResult(
             id="pol-001",
@@ -82,13 +98,12 @@ def search_policies(query: str, category: str | None = None, limit: int = 5) -> 
     ]
 
     results = catalogue
-    if category:
-        results = [p for p in results if p.category == category]
-    if query:
-        q = query.lower()
-        results = [
-            p
-            for p in results
-            if q in p.title.lower() or q in p.summary.lower() or q in p.category
-        ]
-    return results[:limit]
+    if params.category:
+        results = [p for p in results if p.category == params.category]
+    q = params.query.lower()
+    results = [
+        p
+        for p in results
+        if q in p.title.lower() or q in p.summary.lower() or q in p.category
+    ]
+    return results[: params.limit]

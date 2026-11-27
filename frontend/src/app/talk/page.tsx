@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 
-import AppShell from "@/components/AppShell";
+import AppShell, { useUser } from "@/components/AppShell";
 import {
   api,
   ApiError,
@@ -11,6 +11,8 @@ import {
   type ChatTurn,
   type Conversation,
   type Message,
+  type User,
+  type VoicePreference,
   type VoiceTurn,
 } from "@/lib/api";
 
@@ -35,6 +37,7 @@ export default function TalkPage() {
 function TalkConsole() {
   const router = useRouter();
   const params = useSearchParams();
+  const user = useUser();
   const initialId = params.get("c");
 
   const conversationRef = useRef<string | null>(initialId);
@@ -47,6 +50,7 @@ function TalkConsole() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
+  const [voice, setVoice] = useState<VoicePreference>(user.voice_preference ?? "auto");
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -93,7 +97,10 @@ function TalkConsole() {
 
   async function speak(text: string, urgent: boolean) {
     try {
-      const audio = await apiBlob("/speech/tts", { method: "POST", json: { text, crisis: urgent } });
+      const audio = await apiBlob("/speech/tts", {
+        method: "POST",
+        json: { text, crisis: urgent, voice_preference: voice },
+      });
       const url = URL.createObjectURL(audio);
       const player = new Audio(url);
       player.onended = () => {
@@ -114,6 +121,7 @@ function TalkConsole() {
       { key: `u-${turn.user_message_id}`, role: "user", content: userText },
       { key: `a-${turn.assistant_message_id}`, role: "assistant", content: turn.assistant_content },
     ]);
+    if (turn.crisis_contacts?.length) setContacts(turn.crisis_contacts);
     if (turn.requires_human || turn.risk_level === "crisis") setCrisis(true);
     void speak(turn.assistant_content, turn.risk_level === "crisis");
   }
@@ -192,6 +200,21 @@ function TalkConsole() {
     }
   }
 
+  async function changeVoice(preference: VoicePreference) {
+    const previous = voice;
+    setVoice(preference);
+    try {
+      const updated = await api<User>("/auth/me/voice", {
+        method: "PATCH",
+        json: { preference },
+      });
+      setVoice(updated.voice_preference);
+    } catch {
+      setVoice(previous);
+      setNotice("Could not save your voice preference. Try again.");
+    }
+  }
+
   async function sos() {
     setCrisis(true);
     try {
@@ -222,9 +245,24 @@ function TalkConsole() {
             Speak or type. Replies are read aloud. Nothing is kept as audio unless you opt in.
           </p>
         </div>
-        <button onClick={sos} className="btn bg-[rgb(200,40,40)] text-white px-4 py-2 text-sm">
-          SOS
-        </button>
+        <div className="flex items-center gap-2">
+          <label htmlFor="voice-preference" className="text-xs text-[rgba(238,243,255,0.6)]">
+            Voice
+          </label>
+          <select
+            id="voice-preference"
+            className="input !w-auto !py-1.5 text-sm"
+            value={voice}
+            onChange={(e) => void changeVoice(e.target.value as VoicePreference)}
+          >
+            <option value="auto">Auto</option>
+            <option value="female">Female</option>
+            <option value="male">Male</option>
+          </select>
+          <button onClick={sos} className="btn bg-[rgb(200,40,40)] text-white px-4 py-2 text-sm">
+            SOS
+          </button>
+        </div>
       </div>
 
       {crisis && (

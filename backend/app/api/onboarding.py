@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, HTTPException
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import CurrentUser, DbSession, StudentUser
 from app.models.consent import CONSENT_SCOPES
 from app.schemas.auth import UserOut
 from app.schemas.onboarding import ConsentIn, ConsentOut, OnboardingIn
@@ -13,7 +13,7 @@ router = APIRouter(tags=["onboarding"])
 
 
 @router.post("/onboarding", response_model=UserOut)
-async def complete_onboarding(body: OnboardingIn, db: DbSession, user: CurrentUser):
+async def complete_onboarding(body: OnboardingIn, db: DbSession, user: StudentUser):
     unknown = set(body.consents) - set(CONSENT_SCOPES)
     if unknown:
         raise HTTPException(status_code=422, detail=f"unknown_scopes: {sorted(unknown)}")
@@ -28,17 +28,26 @@ async def complete_onboarding(body: OnboardingIn, db: DbSession, user: CurrentUs
         )
 
     user.onboarded = True
+    if body.gender is not None:
+        user.gender = body.gender
+    if body.year_of_study is not None:
+        user.year_of_study = body.year_of_study
+    if body.field_of_study is not None:
+        user.field_of_study = body.field_of_study
+    if body.voice_preference is not None:
+        user.voice_preference = body.voice_preference
     user.emergency_contact_name = body.emergency_contact_name if wants_contact else None
     user.emergency_contact_phone = body.emergency_contact_phone if wants_contact else None
 
     audit(db, user.id, "onboarding.completed", target=str(user.id))
     await db.commit()
     await db.refresh(user)
-    return user
+    await db.refresh(user, attribute_names=["university"])
+    return UserOut.from_user(user)
 
 
 @router.post("/consents", response_model=ConsentOut, status_code=201)
-async def update_consent(body: ConsentIn, db: DbSession, user: CurrentUser):
+async def update_consent(body: ConsentIn, db: DbSession, user: StudentUser):
     if body.scope not in CONSENT_SCOPES:
         raise HTTPException(status_code=422, detail="unknown_scope")
     await record_consent(db, user.id, body.scope, body.granted, body.policy_version)

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 import AppShell, { useUser } from "@/components/AppShell";
+import ProfileFields, { type ProfileValues } from "@/components/ProfileFields";
 import { api, ApiError, type ConsentItem, type ConsentScope, type User } from "@/lib/api";
 
 const SCOPE_COPY: Record<ConsentScope, { title: string; detail: string }> = {
@@ -44,6 +45,12 @@ function OnboardingForm() {
   const router = useRouter();
   const user: User = useUser();
   const [consents, setConsents] = useState<Record<ConsentScope, boolean>>(DEFAULTS);
+  const [profile, setProfile] = useState<ProfileValues>({
+    gender: user.gender ?? "",
+    year_of_study: user.year_of_study ? String(user.year_of_study) : "",
+    field_of_study: user.field_of_study ?? "other",
+    voice_preference: user.voice_preference ?? "auto",
+  });
   const [contactName, setContactName] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
@@ -82,6 +89,10 @@ function OnboardingForm() {
         method: "POST",
         json: {
           consents,
+          gender: profile.gender || null,
+          year_of_study: profile.year_of_study ? Number(profile.year_of_study) : null,
+          field_of_study: profile.field_of_study,
+          voice_preference: profile.voice_preference,
           emergency_contact_name: consents.emergency_contact ? contactName.trim() : null,
           emergency_contact_phone: consents.emergency_contact ? contactPhone.trim() : null,
           policy_version: "v1.0",
@@ -152,6 +163,8 @@ function OnboardingForm() {
             </div>
           </section>
         )}
+
+        <ProfileFields values={profile} onChange={setProfile} />
 
         <label className="panel flex gap-4 cursor-pointer">
           <input

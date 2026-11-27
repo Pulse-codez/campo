@@ -1,27 +1,21 @@
 """Resource finder endpoint (delegates to MCP server)."""
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 
+from app.api.deps import McpActor
 from app.schemas.resource import ResourceRequest
-from app.services.mcp_client import MCPClient
+from app.services.mcp_client import call_mcp_tool
 
 router = APIRouter(prefix="/resources", tags=["resources"])
 
 
 @router.post("/find")
-async def find_resources(request: ResourceRequest):
-    client = MCPClient()
-    try:
-        result = await client.call_tool(
-            "find_resources",
-            {
-                "resource_type": request.resource_type,
-                "location": request.location,
-                "hours": request.hours,
-            },
-        )
-        return result
-    except Exception as exc:  # pragma: no cover - MCP may be offline in dev
-        raise HTTPException(status_code=502, detail=f"mcp_unavailable: {exc}") from exc
-    finally:
-        await client.close()
+async def find_resources(request: ResourceRequest, _actor: McpActor):
+    return await call_mcp_tool(
+        "find_resources",
+        {
+            "resource_type": request.resource_type,
+            "location": request.location,
+            "hours": request.hours,
+        },
+    )

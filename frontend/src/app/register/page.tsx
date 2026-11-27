@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
+import ProfileFields, { type ProfileValues } from "@/components/ProfileFields";
 import { api, ApiError, saveTokens, type TokenPair, type University } from "@/lib/api";
 
 const ERROR_TEXT: Record<string, string> = {
@@ -19,6 +20,12 @@ export default function RegisterPage() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [profile, setProfile] = useState<ProfileValues>({
+    gender: "",
+    year_of_study: "",
+    field_of_study: "other",
+    voice_preference: "auto",
+  });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -37,7 +44,16 @@ export default function RegisterPage() {
     try {
       const tokens = await api<TokenPair>("/auth/register", {
         method: "POST",
-        json: { email, password, full_name: fullName || null, university_id: universityId },
+        json: {
+          email,
+          password,
+          full_name: fullName || null,
+          university_id: universityId,
+          gender: profile.gender || null,
+          year_of_study: profile.year_of_study ? Number(profile.year_of_study) : null,
+          field_of_study: profile.field_of_study,
+          voice_preference: profile.voice_preference,
+        },
       });
       saveTokens(tokens);
       router.replace("/onboarding");
@@ -123,6 +139,8 @@ export default function RegisterPage() {
             />
             <p className="text-xs text-[rgba(238,243,255,0.5)] mt-1">At least 8 characters.</p>
           </div>
+
+          <ProfileFields values={profile} onChange={setProfile} />
 
           {error && <div className="alert-error">{error}</div>}
 

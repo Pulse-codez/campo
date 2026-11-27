@@ -1,22 +1,24 @@
 """study_planner — build study plans that respect mental health capacity."""
 
+from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+EnergyLevel = Literal["low", "moderate", "high"]
 
 
 class StudyPlanInput(BaseModel):
-    units: list[str] = Field(..., description="Course units or topics to study")
+    units: list[str] = Field(..., min_length=1, max_length=20, description="Course units or topics")
     hours_per_week: int = Field(..., ge=1, le=40, description="Available study hours per week")
-    energy_level: str = Field(
-        "moderate",
-        description="Current energy/capacity: low, moderate, high",
-    )
-    exam_weeks_away: int | None = Field(
-        None,
-        ge=1,
-        le=52,
-        description="Weeks until the next major exam, if known",
-    )
+    energy_level: EnergyLevel = Field("moderate", description="low | moderate | high")
+    exam_weeks_away: int | None = Field(None, ge=1, le=52, description="Weeks until the next exam")
+
+    @field_validator("units")
+    @classmethod
+    def units_must_not_be_blank(cls, values: list[str]) -> list[str]:
+        if not all(value.strip() for value in values):
+            raise ValueError("units must not contain empty strings")
+        return values
 
 
 class StudySession(BaseModel):
@@ -34,47 +36,70 @@ class StudyPlanOutput(BaseModel):
     notes: list[str]
 
 
+DAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+MAX_SESSION_MINUTES = 120
+CAPACITY_MULTIPLIER: dict[EnergyLevel, float] = {
+    "low": 0.6,
+    "moderate": 1.0,
+    "high": 1.3,
+}
+
+
 def plan_study(
     units: list[str],
     hours_per_week: int,
     energy_level: str = "moderate",
     exam_weeks_away: int | None = None,
 ) -> StudyPlanOutput:
-    """Generate a weekly study plan that paces load by energy and exam proximity.
+    """Generate a weekly plan paced by energy; session minutes sum to total_hours.
 
-    Placeholder implementation. Replace with a real scheduler that integrates
-    with the student's timetable and calendar before production.
+    This is a simple scheduler. Replace it with a real timetable/calendar
+    integration before production use.
     """
-    capacity_multiplier = {"low": 0.6, "moderate": 1.0, "high": 1.3}.get(energy_level, 1.0)
-    effective_hours = hours_per_week * capacity_multiplier
-    per_unit = max(effective_hours / max(len(units), 1), 0.5)
+    params = StudyPlanInput(
+        units=units,
+        hours_per_week=hours_per_week,
+        energy_level=energy_level,
+        exam_weeks_away=exam_weeks_away,
+    )
 
-    days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    total_minutes = round(
+        params.hours_per_week * CAPACITY_MULTIPLIER[params.energy_level] * 60
+    )
+    base_minutes, remainder = divmod(total_minutes, len(params.units))
+    allocations = [
+        base_minutes + (1 if index < remainder else 0)
+        for index in range(len(params.units))
+    ]
+
     sessions: list[StudySession] = []
-
-    for i, unit in enumerate(units):
-        day = days[i % 7]
-        start_hour = 9 + (i % 8)
-        duration = int(min(per_unit, 2) * 60)
-        sessions.append(
-            StudySession(
-                day=day,
-                time=f"{start_hour:02d}:00",
-                duration_minutes=duration,
-                unit=unit,
-                activity="Focused study with active recall",
-                break_minutes=10,
+    slot = 0
+    for unit, minutes in zip(params.units, allocations):
+        remaining = minutes
+        while remaining > 0:
+            duration = min(MAX_SESSION_MINUTES, remaining)
+            sessions.append(
+                StudySession(
+                    day=DAYS[slot % len(DAYS)],
+                    time=f"{9 + (slot % 8):02d}:00",
+                    duration_minutes=duration,
+                    unit=unit,
+                    activity="Focused study with active recall",
+                    break_minutes=10,
+                )
             )
-        )
+            remaining -= duration
+            slot += 1
 
+    total_hours = round(sum(s.duration_minutes for s in sessions) / 60, 2)
     notes = [
-        f"Planned {effective_hours:.1f} effective study hours this week.",
+        f"Planned {total_hours:g} effective study hours this week.",
         "Take a 10-minute break every 50 minutes.",
         "If energy dips, switch to lighter review instead of skipping.",
     ]
-    if energy_level == "low":
+    if params.energy_level == "low":
         notes.append("Prioritise sleep and one counselling check-in this week.")
-    if exam_weeks_away and exam_weeks_away <= 2:
-        notes.append("Exams are close — consider requesting academic accommodation if needed.")
+    if params.exam_weeks_away and params.exam_weeks_away <= 2:
+        notes.append("Exams are close — consider academic accommodation if needed.")
 
-    return StudyPlanOutput(sessions=sessions, total_hours=effective_hours, notes=notes)
+    return StudyPlanOutput(sessions=sessions, total_hours=total_hours, notes=notes)

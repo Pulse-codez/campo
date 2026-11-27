@@ -5,13 +5,14 @@ from typing import TYPE_CHECKING
 from sqlalchemy import Boolean, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import TimestampedModel
+from app.models.base import ShortIdModel
 
 if TYPE_CHECKING:
+    from app.models.knowledge import KnowledgeChunk
     from app.models.user import User
 
 
-class University(TimestampedModel):
+class University(ShortIdModel):
     __tablename__ = "universities"
 
     name: Mapped[str] = mapped_column(String(255), unique=True)
@@ -20,6 +21,7 @@ class University(TimestampedModel):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
 
     users: Mapped[list["User"]] = relationship(back_populates="university")
+    knowledge: Mapped[list["KnowledgeChunk"]] = relationship(back_populates="university")
 
     @property
     def domains(self) -> list[str]:

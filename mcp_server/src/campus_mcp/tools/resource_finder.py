@@ -1,11 +1,23 @@
 """resource_finder — locate campus and community support resources."""
 
 
+from typing import Literal
+
 from pydantic import BaseModel, Field
+
+ResourceType = Literal[
+    "counselling",
+    "health_clinic",
+    "peer_support",
+    "emergency",
+    "spiritual",
+    "legal_aid",
+    "other",
+]
 
 
 class ResourceInput(BaseModel):
-    resource_type: str = Field(
+    resource_type: ResourceType = Field(
         ...,
         description="Type of resource: counselling, health_clinic, peer_support, emergency, spiritual, legal_aid, other",
     )
@@ -33,9 +45,11 @@ class ResourceResult(BaseModel):
 def find_resources(resource_type: str, location: str | None = None, hours: str | None = None) -> list[ResourceResult]:
     """Find campus and community support resources matching the student's need.
 
-    Placeholder implementation. Replace with a live directory (e.g. university
-    services API or a maintained resource database) before production.
+    This uses a static catalogue. Replace it with a live directory (e.g. a
+    university services API or a maintained resource database) before
+    production.
     """
+    params = ResourceInput(resource_type=resource_type, location=location, hours=hours)
     catalogue = [
         ResourceResult(
             id="res-001",
@@ -99,11 +113,11 @@ def find_resources(resource_type: str, location: str | None = None, hours: str |
         ),
     ]
 
-    results = [r for r in catalogue if r.type == resource_type]
-    if location:
-        loc = location.lower()
+    results = [r for r in catalogue if r.type == params.resource_type]
+    if params.location:
+        loc = params.location.lower()
         results = [r for r in results if loc in r.location.lower()]
-    if hours:
-        h = hours.lower()
+    if params.hours:
+        h = params.hours.lower()
         results = [r for r in results if h in r.hours.lower()]
     return results

@@ -1,7 +1,8 @@
 """decision_lab — structured decision support for health and wellbeing choices."""
 
-
 from pydantic import BaseModel, Field
+
+from campus_mcp.safety import is_crisis
 
 
 class Option(BaseModel):
@@ -14,12 +15,9 @@ class Option(BaseModel):
 
 
 class DecisionLabInput(BaseModel):
-    situation: str = Field(..., description="The decision the student is facing")
-    options: list[Option] = Field(..., min_items=2, description="Options to compare")
-    values: list[str] = Field(
-        ...,
-        description="What matters most to the student, e.g. privacy, speed, cost, confidentiality",
-    )
+    situation: str = Field(..., min_length=1, max_length=5000)
+    options: list[Option] = Field(..., min_length=2, max_length=10)
+    values: list[str] = Field(..., min_length=1, max_length=10)
 
 
 class DecisionLabOutput(BaseModel):
@@ -34,19 +32,13 @@ def evaluate_decision(
     options: list[Option],
     values: list[str],
 ) -> DecisionLabOutput:
-    """Help a student weigh options using a simple values-aligned framework.
-
-    This is decision support, not medical advice. It never makes the choice for
-    the student and flags anything that sounds like a crisis for human review.
-    """
-    crisis_keywords = [
-        "suicide", "kill myself", "end it", "self harm", "hurt myself",
-        "overdose", "jump", "hanging",
+    """Weigh options against the student's values; flag crisis language first."""
+    params = DecisionLabInput(situation=situation, options=options, values=values)
+    option_text = [
+        " ".join([option.label, *option.pros, *option.cons])
+        for option in params.options
     ]
-    text = (situation + " " + " ".join(o.label + " " + " ".join(o.pros + o.cons) for o in options)).lower()
-    crisis_flag = any(k in text for k in crisis_keywords)
-
-    if crisis_flag:
+    if is_crisis(params.situation, *option_text):
         return DecisionLabOutput(
             recommended=None,
             reasoning=(
@@ -62,20 +54,19 @@ def evaluate_decision(
         )
 
     scored = []
-    for option in options:
+    for option in params.options:
         score = 0
-        option_text = (option.label + " " + " ".join(option.pros + option.cons)).lower()
-        for v in values:
-            if v.lower() in option_text:
+        candidate = " ".join([option.label, *option.pros, *option.cons]).lower()
+        for value in params.values:
+            if value.lower() in candidate:
                 score += 1
         scored.append((score, option))
 
-    scored.sort(key=lambda x: x[0], reverse=True)
+    scored.sort(key=lambda item: item[0], reverse=True)
     top = scored[0][1] if scored else None
-
     reasoning = (
-        f"Weighed {len(options)} options against what matters to you: "
-        f"{', '.join(values)}. "
+        f"Weighed {len(params.options)} options against what matters to you: "
+        f"{', '.join(params.values)}. "
     )
     if top:
         reasoning += (
@@ -83,15 +74,13 @@ def evaluate_decision(
             "This is a suggestion, not a directive — you choose."
         )
 
-    next_steps = [
-        "Write down your top choice and one first step.",
-        "If you're unsure, talk it through with a counsellor or trusted person.",
-        "Revisit the decision in a few days — needs can change.",
-    ]
-
     return DecisionLabOutput(
         recommended=top.label if top else None,
         reasoning=reasoning,
-        next_steps=next_steps,
+        next_steps=[
+            "Write down your top choice and one first step.",
+            "If you're unsure, talk it through with a counsellor or trusted person.",
+            "Revisit the decision in a few days — needs can change.",
+        ],
         crisis_flag=False,
     )

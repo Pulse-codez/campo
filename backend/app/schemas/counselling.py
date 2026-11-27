@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Literal
-from uuid import UUID
 
 from pydantic import BaseModel, Field
 
@@ -18,11 +17,11 @@ class SessionUpdateIn(BaseModel):
 
 
 class SessionOut(BaseModel):
-    id: UUID
+    id: str
     student_name: str | None
     topic: str
     preferred_time: str | None
     scheduled_at: datetime | None
     status: str
-    counsellor_id: UUID | None
+    counsellor_id: str | None
     created_at: datetime
