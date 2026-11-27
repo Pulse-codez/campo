@@ -36,7 +36,7 @@ cd ../jobs && pnpm install
 
 ```bash
 # Backend
-cd backend && uv run fastapi dev app/main.py
+cd backend && uv run uvicorn app.main:app --reload --port 8000   # needs PostgreSQL running (see .env)
 cd backend && uv run alembic upgrade head
 cd backend && uv run pytest
 cd backend && uv run ruff check .

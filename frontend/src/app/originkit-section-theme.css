@@ -17,7 +17,7 @@
   --font-instrument-serif: "Instrument Serif", Georgia, serif;
   --font-instrument-tight: "Instrument Sans", Inter, sans-serif;
   --font-clash: Inter, ui-sans-serif, sans-serif;
-  /* Canela Deck is self-hosted per section (canela-deck-bold.ttf). No Instrument Serif fallback — that masked missing @font-face. */
+  /* Canela Deck is self-hosted per section (canela-deck-bold.ttf). No Instrument Serif fallback, which masked missing @font-face. */
   --font-canela-deck: "Canela Deck", Georgia, "Times New Roman", serif;
   --font-helvetica-neue: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-monda: Monda, Inter, ui-sans-serif, sans-serif;

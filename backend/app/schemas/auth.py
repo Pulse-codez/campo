@@ -11,6 +11,7 @@ class UserRegister(BaseModel):
     password: str = Field(..., min_length=8, max_length=72)
     full_name: str | None = Field(None, max_length=255)
     university_id: UUID
+    other_university_name: str | None = Field(None, max_length=255)
 
 
 class UserLogin(BaseModel):
@@ -33,6 +34,8 @@ class UserOut(BaseModel):
     role: str
     university_id: UUID
     onboarded: bool
+    concerns: list[str] = Field(default_factory=list, validation_alias="concerns_list")
+    therapist_key: str | None
     is_active: bool
     is_verified: bool
     created_at: datetime

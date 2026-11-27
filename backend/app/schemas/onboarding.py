@@ -6,6 +6,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class OnboardingIn(BaseModel):
+    concerns: list[str] = Field(default_factory=list, max_length=10)
+    therapist_key: str | None = Field(None, max_length=32)
     consents: dict[str, bool] = Field(default_factory=dict)
     emergency_contact_name: str | None = Field(None, max_length=255)
     emergency_contact_phone: str | None = Field(None, max_length=32)

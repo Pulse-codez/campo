@@ -1,4 +1,4 @@
-// Campus Support Companion service worker — offline-first PWA shell
+// Campus Support Companion service worker, offline-first PWA shell
 const CACHE_NAME = "campus-support-v1";
 const ASSETS = [
   "/",

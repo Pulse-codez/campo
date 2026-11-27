@@ -1,4 +1,4 @@
-"""resource_finder — locate campus and community support resources."""
+"""resource_finder: locate campus and community support resources."""
 
 
 from pydantic import BaseModel, Field

@@ -20,6 +20,7 @@ class State(TypedDict, total=False):
     messages: list[dict[str, Any]]
     user_id: str
     conversation_id: str
+    persona: str
     safety_level: str
     requires_human: bool
     safety_reasons: list[str]
@@ -48,7 +49,8 @@ async def crisis_response(state: State) -> dict[str, Any]:
 
 
 async def generate(state: State) -> dict[str, Any]:
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}, *state["messages"]]
+    system = SYSTEM_PROMPT + (f"\n\n{state['persona']}" if state.get("persona") else "")
+    messages = [{"role": "system", "content": system}, *state["messages"]]
     return {"assistant_content": await generate_response(messages)}
 
 

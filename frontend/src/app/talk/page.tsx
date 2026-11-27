@@ -218,7 +218,7 @@ function TalkConsole() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Talk</h1>
-          <p className="text-[rgba(238,243,255,0.6)] mt-1">
+          <p className="text-[rgb(var(--fg)/0.6)] mt-1">
             Speak or type. Replies are read aloud. Nothing is kept as audio unless you opt in.
           </p>
         </div>
@@ -231,16 +231,16 @@ function TalkConsole() {
         <section className="alert-crisis space-y-2">
           <div className="flex items-start justify-between gap-4">
             <p className="font-semibold">Reach a person now</p>
-            <button onClick={() => setCrisis(false)} className="text-sm text-[rgba(238,243,255,0.6)] hover:text-white">
+            <button onClick={() => setCrisis(false)} className="text-sm text-[rgb(var(--fg)/0.6)] hover:text-[rgb(var(--fg))]">
               Dismiss
             </button>
           </div>
-          <ul className="text-sm space-y-1 text-[rgba(238,243,255,0.9)]">
+          <ul className="text-sm space-y-1 text-[rgb(var(--fg)/0.9)]">
             {contacts.map((c) => (
               <li key={c}>{c}</li>
             ))}
           </ul>
-          <p className="text-xs text-[rgba(238,243,255,0.6)]">If you are in immediate danger, call now.</p>
+          <p className="text-xs text-[rgb(var(--fg)/0.6)]">If you are in immediate danger, call now.</p>
         </section>
       )}
 
@@ -252,12 +252,12 @@ function TalkConsole() {
           className={`h-28 w-28 rounded-full flex items-center justify-center text-white text-sm font-semibold transition-all disabled:opacity-50 ${
             recording
               ? "bg-[rgb(200,40,40)] shadow-[0_0_0_12px_rgba(200,40,40,0.2)] animate-pulse"
-              : "bg-[rgb(27,79,216)] shadow-[0_10px_40px_rgba(27,79,216,0.5)] hover:brightness-110"
+              : "bg-[rgb(var(--accent))] shadow-[0_10px_40px_rgb(var(--accent)/0.5)] hover:brightness-110"
           }`}
         >
           {recording ? "Send" : "Talk"}
         </button>
-        <p className="text-sm text-[rgba(238,243,255,0.7)]" aria-live="polite">{stage}</p>
+        <p className="text-sm text-[rgb(var(--fg)/0.7)]" aria-live="polite">{stage}</p>
       </section>
 
       {error && <div className="alert-error">{error}</div>}
@@ -265,7 +265,7 @@ function TalkConsole() {
 
       <section className="space-y-3">
         {bubbles.length === 0 && (
-          <p className="text-sm text-center text-[rgba(238,243,255,0.5)]">
+          <p className="text-sm text-center text-[rgb(var(--fg)/0.5)]">
             Start by tapping Talk, or type a message below.
           </p>
         )}
@@ -274,7 +274,7 @@ function TalkConsole() {
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-3 text-[0.95rem] leading-relaxed whitespace-pre-wrap ${
                 b.role === "user"
-                  ? "bg-[rgba(27,79,216,0.3)] border border-[rgba(111,200,255,0.2)]"
+                  ? "bg-[rgb(var(--accent)/0.3)] border border-[rgb(var(--link)/0.2)]"
                   : "panel !p-4"
               }`}
             >

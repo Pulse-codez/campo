@@ -1,4 +1,4 @@
-"""study_planner — build study plans that respect mental health capacity."""
+"""study_planner: build study plans that respect mental health capacity."""
 
 
 from pydantic import BaseModel, Field
@@ -75,6 +75,6 @@ def plan_study(
     if energy_level == "low":
         notes.append("Prioritise sleep and one counselling check-in this week.")
     if exam_weeks_away and exam_weeks_away <= 2:
-        notes.append("Exams are close — consider requesting academic accommodation if needed.")
+        notes.append("Exams are close. Consider requesting academic accommodation if needed.")
 
     return StudyPlanOutput(sessions=sessions, total_hours=effective_hours, notes=notes)

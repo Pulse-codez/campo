@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.therapists import persona_prompt
 from app.models.user import User
 from app.orchestrator.graph import build_graph
 from app.safety.classifier import assess as classify
@@ -54,6 +55,7 @@ async def run_turn(
             "messages": history,
             "user_id": str(user.id),
             "conversation_id": str(conv.id),
+            "persona": persona_prompt(user.therapist_key),
         }
     )
 

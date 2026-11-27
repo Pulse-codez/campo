@@ -27,7 +27,15 @@ async def register_student(db: AsyncSession, data: UserRegister) -> User:
     university = await db.get(University, data.university_id)
     if university is None or not university.is_active:
         raise ValueError("university_not_found")
-    if not email_matches_university(data.email, university):
+    other_name = None
+    if university.slug == "other":
+        other_name = (data.other_university_name or "").strip()
+        if not other_name:
+            raise ValueError("other_university_name_required")
+        domain = data.email.rsplit("@", 1)[-1].lower()
+        if not domain.endswith((".ac.ke", ".edu")):
+            raise ValueError("other_email_not_accepted")
+    elif not email_matches_university(data.email, university):
         raise ValueError("email_domain_not_allowed")
 
     existing = await db.scalar(select(User).where(User.email == data.email))
@@ -40,6 +48,7 @@ async def register_student(db: AsyncSession, data: UserRegister) -> User:
         full_name=data.full_name,
         role="student",
         university_id=university.id,
+        university_other_name=other_name,
     )
     db.add(user)
     await db.commit()

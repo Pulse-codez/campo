@@ -1,4 +1,4 @@
-"""escalation_request — route a student to human support when needed."""
+"""escalation_request: route a student to human support when needed."""
 
 
 from pydantic import BaseModel, Field
@@ -33,7 +33,7 @@ def request_escalation(
     """Create an escalation to human support and return immediate actions.
 
     Placeholder implementation. Wire this to the university's ticketing or
-    case-management system before production. Crisis cases are never queued —
+    case-management system before production. Crisis cases are never queued;
     they are given direct emergency contacts.
     """
     crisis_keywords = ["suicide", "kill myself", "end it", "self harm", "hurt myself", "overdose"]

@@ -1,4 +1,4 @@
-"""decision_lab — structured decision support for health and wellbeing choices."""
+"""decision_lab: structured decision support for health and wellbeing choices."""
 
 
 from pydantic import BaseModel, Field
@@ -51,7 +51,7 @@ def evaluate_decision(
             recommended=None,
             reasoning=(
                 "This sounds like it could involve safety concerns. I can't weigh "
-                "options for this situation — please reach a human right now."
+                "options for this situation. Please reach a human right now."
             ),
             next_steps=[
                 "Call the national mental health helpline at 1199 (24/7, free).",
@@ -80,13 +80,13 @@ def evaluate_decision(
     if top:
         reasoning += (
             f"'{top.label}' aligns most closely with your stated values. "
-            "This is a suggestion, not a directive — you choose."
+            "This is a suggestion, not a directive. You choose."
         )
 
     next_steps = [
         "Write down your top choice and one first step.",
         "If you're unsure, talk it through with a counsellor or trusted person.",
-        "Revisit the decision in a few days — needs can change.",
+        "Revisit the decision in a few days, since needs can change.",
     ]
 
     return DecisionLabOutput(

@@ -29,7 +29,7 @@ function SessionsContent() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">{isStudent ? "Counselling sessions" : "Session queue"}</h1>
-        <p className="text-[rgba(238,243,255,0.6)] mt-2">
+        <p className="text-[rgb(var(--fg)/0.6)] mt-2">
           {isStudent
             ? "Request time with a campus counsellor or peer counsellor. Requests are private to you and the team you are matched with."
             : "Students from your university who have consented to counselling. Accept a request to take it on."}
@@ -95,7 +95,7 @@ function StudentView() {
         {consented === false ? (
           <div className="panel space-y-3">
             <h2 className="font-semibold">Counselling consent is off</h2>
-            <p className="text-sm text-[rgba(238,243,255,0.65)]">
+            <p className="text-sm text-[rgb(var(--fg)/0.65)]">
               Counsellors only see requests from students who have chosen to share with them.
             </p>
             <Link href="/onboarding" className="btn btn-outline text-sm px-4 py-2 inline-flex">
@@ -139,13 +139,13 @@ function StudentView() {
       <section className="lg:col-span-3 space-y-3">
         <h2 className="font-semibold">Your requests</h2>
         {sessions.length === 0 ? (
-          <p className="text-sm text-[rgba(238,243,255,0.55)]">No requests yet.</p>
+          <p className="text-sm text-[rgb(var(--fg)/0.55)]">No requests yet.</p>
         ) : (
           sessions.map((s) => (
             <div key={s.id} className="panel flex flex-wrap justify-between gap-3">
               <div>
                 <p className="font-semibold">{s.topic}</p>
-                <p className="text-sm text-[rgba(238,243,255,0.55)]">
+                <p className="text-sm text-[rgb(var(--fg)/0.55)]">
                   {s.preferred_time ? `${s.preferred_time} · ` : ""}Sent {formatDateTime(s.created_at)}
                 </p>
               </div>
@@ -192,7 +192,7 @@ function StaffQueue() {
   }
 
   if (sessions.length === 0) {
-    return <p className="text-sm text-[rgba(238,243,255,0.55)]">Nothing in the queue right now.</p>;
+    return <p className="text-sm text-[rgb(var(--fg)/0.55)]">Nothing in the queue right now.</p>;
   }
 
   return (
@@ -202,7 +202,7 @@ function StaffQueue() {
         <div key={s.id} className="panel flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="font-semibold">{s.topic}</p>
-            <p className="text-sm text-[rgba(238,243,255,0.6)]">
+            <p className="text-sm text-[rgb(var(--fg)/0.6)]">
               {s.student_name ?? "Student"}
               {s.preferred_time ? ` · ${s.preferred_time}` : ""} · {formatDateTime(s.created_at)}
             </p>

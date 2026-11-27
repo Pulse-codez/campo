@@ -1,8 +1,8 @@
 const TONE: Record<string, string> = {
-  requested: "bg-[rgba(111,200,255,0.12)] text-[#6FC8FF]",
-  booked: "bg-[rgba(27,79,216,0.25)] text-[#cfe0ff]",
-  completed: "bg-[rgba(238,243,255,0.08)] text-[rgba(238,243,255,0.7)]",
-  cancelled: "bg-[rgba(255,80,80,0.12)] text-[rgb(255,190,190)]",
+  requested: "bg-[rgb(var(--link)/0.12)] text-[rgb(var(--link))]",
+  booked: "bg-[rgb(var(--accent)/0.25)] text-[rgb(var(--fg))]",
+  completed: "bg-[rgb(var(--fg)/0.08)] text-[rgb(var(--fg)/0.7)]",
+  cancelled: "bg-[rgb(var(--danger)/0.12)] text-[rgb(var(--danger))]",
 };
 
 export default function StatusPill({ status }: { status: string }) {

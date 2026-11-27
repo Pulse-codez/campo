@@ -9,8 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.university import University
 
 SEED_UNIVERSITIES = [
-    {"name": "University of Nairobi", "slug": "uon", "email_domains": "uonbi.ac.ke"},
-    {"name": "Kenyatta University", "slug": "ku", "email_domains": "ku.ac.ke"},
+    {"name": "University of Nairobi (UON)", "slug": "uon", "email_domains": "uonbi.ac.ke"},
+    {"name": "Kenya Christian University (KCA)", "slug": "kca", "email_domains": "kca.ac.ke"},
+    {"name": "Strathmore University", "slug": "strathmore", "email_domains": "strathmore.edu"},
+    {"name": "Technical University of Kenya (TUK)", "slug": "tuk", "email_domains": "tukenya.ac.ke"},
+    {"name": "Zetech University", "slug": "zetech", "email_domains": "zetech.ac.ke"},
+    {"name": "Daystar University", "slug": "daystar", "email_domains": "daystar.ac.ke"},
+    {"name": "Riara University", "slug": "riara", "email_domains": "riarauniversity.ac.ke"},
+    {"name": "Kenyatta University (KU)", "slug": "ku", "email_domains": "ku.ac.ke"},
     {"name": "Moi University", "slug": "mu", "email_domains": "mu.ac.ke"},
     {
         "name": "Jomo Kenyatta University of Agriculture and Technology",
@@ -18,7 +24,9 @@ SEED_UNIVERSITIES = [
         "email_domains": "jkuat.ac.ke",
     },
     {"name": "Egerton University", "slug": "egerton", "email_domains": "egerton.ac.ke"},
-    {"name": "Strathmore University", "slug": "strathmore", "email_domains": "strathmore.edu"},
+    # Students whose university is not listed. Their email must end in .ac.ke or .edu, and an
+    # admin must verify the account before it is trusted (not built yet).
+    {"name": "Other (not listed)", "slug": "other", "email_domains": ""},
 ]
 
 

@@ -32,6 +32,16 @@ class Settings(BaseSettings):
 
     mcp_server_url: str = "http://localhost:8001/mcp"
 
+    # Development: any localhost or private-network address on any port (for LAN testing).
+    cors_origin_regex: str = r"https?://(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?"
+
+    cors_origins: list[str] = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3100",
+        "http://127.0.0.1:3100",
+    ]
+
     sentry_dsn: str = ""
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
