@@ -10,19 +10,17 @@ services:
     region: virginia
     plan: starter
     rootDir: backend
-    buildCommand: pip install uv && uv sync --frozen --no-dev
-    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: unset VIRTUAL_ENV && pip install uv && uv sync --frozen --no-dev
+    startCommand: unset VIRTUAL_ENV && uv run --no-sync alembic upgrade head && uv run --no-sync uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     autoDeploy: true
     envVars:
       - key: PYTHON_VERSION
-        value: "3.12"
+        value: "3.12.16"
 
-      # App
+      # App. Alembic owns the production schema (startCommand runs `alembic upgrade head`).
       - key: APP_ENV
-        # Keep "development" until Alembic migrations exist. In "production" the app skips table
-        # creation, so the database would stay empty.
-        value: development
+        value: production
       - key: DEBUG
         value: "false"
 
@@ -33,6 +31,9 @@ services:
       # Auth
       - key: JWT_SECRET
         generateValue: true
+      # AES-GCM key for message bodies. Generate with: openssl rand -base64 32
+      - key: FIELD_ENCRYPTION_KEY
+        sync: false
       - key: ENFORCE_UNIVERSITY_EMAIL
         # Set to "true" once the university email domains are verified.
         value: "false"
@@ -64,4 +65,7 @@ services:
 
       # MCP tool server (deploy separately, then set its URL here)
       - key: MCP_SERVER_URL
+        sync: false
+      # Must match MCP_SERVER_AUTH_TOKEN on the MCP service.
+      - key: MCP_AUTH_TOKEN
         sync: false
