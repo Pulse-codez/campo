@@ -51,7 +51,7 @@ async def list_checkins(db: DbSession, user: CurrentUser):
     )
     return [
         CheckinOut(
-            id=str(r.id),
+            id=r.public_id,
             period=r.period,
             feelings=r.feelings,
             direction=r.direction,

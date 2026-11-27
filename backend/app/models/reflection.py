@@ -5,10 +5,10 @@ import uuid
 from sqlalchemy import ForeignKey, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import TimestampedModel
+from app.models.base import ShortIdModel
 
 
-class MonthlyReflection(TimestampedModel):
+class MonthlyReflection(ShortIdModel):
     __tablename__ = "monthly_reflections"
     __table_args__ = (Index("uq_reflection_user_period", "user_id", "period", unique=True),)
 

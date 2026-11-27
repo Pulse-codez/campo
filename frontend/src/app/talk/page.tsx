@@ -3,12 +3,8 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState, type FormEvent } from "react";
 
-<<<<<<< Updated upstream
 import AppShell, { useUser } from "@/components/AppShell";
-=======
-import AppShell from "@/components/AppShell";
 import KindMessages from "@/components/KindMessages";
->>>>>>> Stashed changes
 import {
   api,
   ApiError,
