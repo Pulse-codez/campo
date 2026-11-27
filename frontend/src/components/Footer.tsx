@@ -1,26 +1,26 @@
 export default function Footer() {
   return (
-    <footer className="border-t border-[rgb(229,231,235)] bg-white mt-auto">
+    <footer className="border-t border-[rgba(238,243,255,0.12)] bg-[rgb(1,3,10)] mt-auto">
       <div className="container px-4 py-10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-sm text-[rgb(107,114,128)]">
+          <div className="text-sm text-[rgba(238,243,255,0.62)]">
             Campus Support Companion — peer-style support for university students in Kenya.
           </div>
           <div className="flex gap-4 text-sm">
-            <a href="/privacy" className="text-[rgb(107,114,128)] hover:text-[rgb(20,137,103)]">
+            <a href="/privacy" className="text-[rgba(238,243,255,0.7)] hover:text-white transition-colors">
               Privacy
             </a>
-            <a href="/terms" className="text-[rgb(107,114,128)] hover:text-[rgb(20,137,103)]">
+            <a href="/terms" className="text-[rgba(238,243,255,0.7)] hover:text-white transition-colors">
               Terms
             </a>
-            <a href="/accessibility" className="text-[rgb(107,114,128)] hover:text-[rgb(20,137,103)]">
+            <a href="/accessibility" className="text-[rgba(238,243,255,0.7)] hover:text-white transition-colors">
               Accessibility
             </a>
           </div>
         </div>
-        <div className="mt-8 pt-6 border-t border-[rgb(229,231,235)] text-xs text-[rgb(107,114,128)]">
+        <div className="mt-8 pt-6 border-t border-[rgba(238,243,255,0.12)] text-xs text-[rgba(238,243,255,0.5)]">
           Not an emergency service. If you or someone else is in immediate danger,
-          call <strong>1199</strong> (national mental health helpline, 24/7, free) or go to the nearest
+          call <strong className="text-white">1199</strong> (national mental health helpline, 24/7, free) or go to the nearest
           hospital emergency department.
         </div>
       </div>

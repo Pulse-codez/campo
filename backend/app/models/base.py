@@ -1,4 +1,4 @@
-"""Common mixins for all models."""
+"""Declarative base and common columns."""
 
 import uuid
 from datetime import datetime
@@ -7,9 +7,11 @@ from sqlalchemy import DateTime, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
-class BaseModel(DeclarativeBase):
-    """Base with uuid primary key and created_at/updated_at."""
+class Base(DeclarativeBase):
+    pass
 
+
+class TimestampedModel(Base):
     __abstract__ = True
 
     id: Mapped[uuid.UUID] = mapped_column(

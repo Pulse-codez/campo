@@ -37,7 +37,7 @@ const conditions = [
 
 export default function ConditionCards() {
   return (
-    <section className="section bg-[rgb(255,255,255)]">
+    <section id="conditions" className="section scroll-mt-20">
       <div className="container">
         <h2 className="section-title">Start with what you are feeling</h2>
         <p className="section-subtitle">
@@ -47,13 +47,13 @@ export default function ConditionCards() {
           {conditions.map((c) => (
             <Link
               key={c.id}
-              href={`/conditions/${c.id}`}
-              className="card text-center hover:border-[rgb(20,137,103)] group"
+              href="/talk"
+              className="card text-center hover:border-[rgba(111,200,255,0.45)] group"
             >
-              <h3 className="font-semibold text-base mb-1 group-hover:text-[rgb(20,137,103)] transition-colors">
+              <h3 className="font-semibold text-base mb-1 group-hover:text-[#6FC8FF] transition-colors">
                 {c.label}
               </h3>
-              <p className="text-xs text-[rgb(107,114,128)]">
+              <p className="text-xs text-[rgba(238,243,255,0.62)]">
                 {c.description}
               </p>
             </Link>

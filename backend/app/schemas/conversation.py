@@ -3,7 +3,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ConversationCreate(BaseModel):
@@ -11,29 +11,23 @@ class ConversationCreate(BaseModel):
 
 
 class ConversationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     title: str | None
     is_archived: bool
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
-
-
-class MessageCreate(BaseModel):
-    content: str = Field(..., min_length=1, max_length=10000)
-
 
 class MessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: UUID
     role: str
     content: str
     risk_level: str | None
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class ChatRequest(BaseModel):
@@ -48,3 +42,8 @@ class ChatResponse(BaseModel):
     assistant_content: str
     risk_level: str
     requires_human: bool
+
+
+class VoiceTurnResponse(BaseModel):
+    transcript: str
+    turn: ChatResponse

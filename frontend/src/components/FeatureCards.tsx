@@ -25,7 +25,7 @@ const features = [
 
 export default function FeatureCards() {
   return (
-    <section className="section">
+    <section id="features" className="section scroll-mt-20">
       <div className="container">
         <h2 className="section-title">What you can do here</h2>
         <p className="section-subtitle">
@@ -34,8 +34,8 @@ export default function FeatureCards() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((f) => (
             <div key={f.title} className="card">
-              <h3 className="font-semibold text-lg mb-2">{f.title}</h3>
-              <p className="text-sm text-[rgb(107,114,128)] leading-relaxed">
+              <h3 className="font-semibold text-lg mb-2 text-white">{f.title}</h3>
+              <p className="text-sm text-[rgba(238,243,255,0.62)] leading-relaxed">
                 {f.description}
               </p>
             </div>

@@ -1,123 +1,89 @@
-"""Conversation and chat endpoints."""
+"""Conversation endpoints: list, history, text turn, and voice turn."""
 
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+import httpx
+from fastapi import APIRouter, File, HTTPException, UploadFile
 
-from app.api.deps import get_current_user, get_db_session
-from app.models.user import User
-from app.orchestrator.graph import build_graph
-from app.safety.classifier import assess as classify
-from app.safety.rules.engine import apply as apply_rules
+from app.api.deps import CurrentUser, DbSession
 from app.schemas.conversation import (
     ChatRequest,
     ChatResponse,
     ConversationCreate,
     ConversationOut,
     MessageOut,
+    VoiceTurnResponse,
 )
+from app.services import speech_service
+from app.services.chat_service import run_turn
 from app.services.conversation_service import (
-    add_message,
     create_conversation,
     get_conversation,
     get_messages,
     list_conversations,
 )
+from app.services.speech_service import SpeechUnavailable
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
 
 @router.post("", response_model=ConversationOut, status_code=201)
-async def create_conv(
-    data: ConversationCreate,
-    db: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    return await create_conversation(db, current_user.id, data)
+async def create_conv(data: ConversationCreate, db: DbSession, user: CurrentUser):
+    return await create_conversation(db, user.id, data)
 
 
 @router.get("", response_model=list[ConversationOut])
-async def list_convs(
-    db: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    return await list_conversations(db, current_user.id)
+async def list_convs(db: DbSession, user: CurrentUser):
+    return await list_conversations(db, user.id)
 
 
 @router.get("/{conversation_id}/messages", response_model=list[MessageOut])
-async def get_conv_messages(
-    conversation_id: UUID,
-    db: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    conv = await get_conversation(db, current_user.id, conversation_id)
-    if not conv:
+async def get_conv_messages(conversation_id: UUID, db: DbSession, user: CurrentUser):
+    if await get_conversation(db, user.id, conversation_id) is None:
         raise HTTPException(status_code=404, detail="conversation_not_found")
     return await get_messages(db, conversation_id)
 
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(
-    request: ChatRequest,
-    db: Annotated[AsyncSession, Depends(get_db_session)],
-    current_user: Annotated[User, Depends(get_current_user)],
+async def chat(body: ChatRequest, db: DbSession, user: CurrentUser):
+    try:
+        return await run_turn(db, user, body.conversation_id, body.message)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@router.post("/{conversation_id}/voice", response_model=VoiceTurnResponse)
+async def voice_turn(
+    conversation_id: UUID,
+    db: DbSession,
+    user: CurrentUser,
+    audio: Annotated[UploadFile, File()],
 ):
-    graph = build_graph()
+    """Transcribe the upload, then run the same safety-first turn as typed text.
 
-    # Resolve or create conversation
-    conversation_id = request.conversation_id
-    if conversation_id is None:
-        conv = await create_conversation(db, current_user.id, ConversationCreate(title=None))
-        conversation_id = conv.id
+    The raw audio is not stored; only the transcript goes into the conversation.
+    """
+    data = await audio.read()
+    if not data:
+        raise HTTPException(status_code=422, detail="empty_audio")
 
-    conv = await get_conversation(db, current_user.id, conversation_id)
-    if not conv:
-        raise HTTPException(status_code=404, detail="conversation_not_found")
+    try:
+        transcript = await speech_service.transcribe(
+            data,
+            audio.filename or "speech.webm",
+            audio.content_type or "audio/webm",
+        )
+    except SpeechUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="speech_provider_error") from exc
 
-    # Safety check on user message
-    classified = classify(request.message)
-    applied = apply_rules(classified, {})
+    if not transcript.strip():
+        raise HTTPException(status_code=422, detail="no_speech_detected")
 
-    # Save user message
-    user_msg = await add_message(
-        db, conversation_id, "user", request.message, applied["level"]
-    )
-
-    # Build message history for the orchestrator
-    prior = await get_messages(db, conversation_id, limit=50)
-    history = [
-        {"role": m.role, "content": m.content} for m in prior
-    ]
-    history.append({"role": "user", "content": request.message})
-
-    # Run orchestrator
-    result = await graph.ainvoke(
-        {
-            "messages": history,
-            "user_id": str(current_user.id),
-            "conversation_id": str(conversation_id),
-        }
-    )
-
-    assistant_content = result.get("assistant_content", "")
-    safety_level = result.get("safety_level", applied["level"])
-    requires_human = result.get("requires_human", applied["requires_human"])
-
-    assistant_msg = await add_message(
-        db,
-        conversation_id,
-        "assistant",
-        assistant_content,
-        safety_level,
-    )
-
-    return ChatResponse(
-        conversation_id=conversation_id,
-        user_message_id=user_msg.id,
-        assistant_message_id=assistant_msg.id,
-        assistant_content=assistant_content,
-        risk_level=safety_level,
-        requires_human=requires_human,
-    )
+    try:
+        turn = await run_turn(db, user, conversation_id, transcript)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    return VoiceTurnResponse(transcript=transcript, turn=turn)

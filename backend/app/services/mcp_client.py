@@ -1,28 +1,21 @@
-"""HTTP client for the FastMCP policy/tool server."""
+"""Client for the FastMCP policy/tool server, using the MCP protocol."""
 
-import httpx
+from typing import Any
+
+from fastmcp import Client
 
 from app.core.config import get_settings
 
-settings = get_settings()
-
 
 class MCPClient:
-    def __init__(self, base_url: str | None = None):
-        self.base_url = base_url or settings.mcp_server_url
-        self._client: httpx.AsyncClient | None = None
+    def __init__(self, url: str | None = None):
+        self.url = url or get_settings().mcp_server_url
 
-    async def _client(self) -> httpx.AsyncClient:
-        if self._client is None:
-            self._client = httpx.AsyncClient(base_url=self.base_url, timeout=15.0)
-        return self._client
-
-    async def call_tool(self, name: str, arguments: dict) -> dict:
-        client = await self._client()
-        resp = await client.post("/tools/call", json={"name": name, "arguments": arguments})
-        resp.raise_for_status()
-        return resp.json()
+    async def call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
+        async with Client(self.url) as client:
+            result = await client.call_tool(name, arguments)
+            return result.structured_content or result.data
 
     async def close(self) -> None:
-        if self._client:
-            await self._client.aclose()
+        # Each call opens and closes its own connection; kept so route handlers stay simple.
+        return None

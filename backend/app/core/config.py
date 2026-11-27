@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     anthropic_model: str = "claude-sonnet-5-5"
     llm_timeout_seconds: int = 15
 
+    elevenlabs_api_key: str = ""
+    elevenlabs_voice_id: str = ""
+    elevenlabs_crisis_voice_id: str = ""
+    elevenlabs_stt_model: str = "scribe_v1"
+    elevenlabs_tts_model: str = "eleven_multilingual_v2"
+
     mcp_server_url: str = "http://localhost:8001/mcp"
 
     sentry_dsn: str = ""
@@ -32,10 +38,7 @@ class Settings(BaseSettings):
     langfuse_host: str = ""
     otel_exporter_otlp_endpoint: str = ""
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False, extra="ignore")
 
 
 @lru_cache

@@ -1,56 +1,64 @@
-"""Auth endpoints: register, login, refresh, me."""
+"""Auth endpoints: register (university-scoped), login, refresh, me."""
 
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_current_user, get_db_session
-from app.core.security import create_access_token, create_refresh_token, decode_token
+from app.api.deps import CurrentUser, DbSession
+from app.core.security import decode_token
 from app.models.user import User
 from app.schemas.auth import TokenResponse, UserLogin, UserOut, UserRegister
-from app.services.auth_service import authenticate, tokens_for_user
-from app.services.auth_service import register as svc_register
+from app.services import auth_service
+from app.services.audit_service import audit
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 bearer = HTTPBearer()
 
+REGISTER_ERRORS = {
+    "university_not_found": 422,
+    "email_domain_not_allowed": 422,
+    "email_already_registered": status.HTTP_409_CONFLICT,
+}
+
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-async def register(data: UserRegister, db: Annotated[AsyncSession, Depends(get_db_session)]):
+async def register(data: UserRegister, db: DbSession):
     try:
-        await svc_register(db, data)
+        user = await auth_service.register_student(db, data)
     except ValueError as exc:
-        if str(exc) == "email_already_registered":
-            raise HTTPException(status_code=409, detail="email_already_registered") from exc
-        raise
-
-    result = await db.execute(select(User).where(User.email == data.email))
-    user = result.scalar_one()
-    return await tokens_for_user(user)
+        code = str(exc)
+        raise HTTPException(REGISTER_ERRORS.get(code, 400), detail=code) from exc
+    return auth_service.tokens_for_user(user)
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(data: UserLogin, db: Annotated[AsyncSession, Depends(get_db_session)]):
-    user = await authenticate(db, data)
-    if not user:
+async def login(data: UserLogin, db: DbSession):
+    user = await auth_service.authenticate(db, data)
+    if user is None:
         raise HTTPException(status_code=401, detail="invalid_credentials")
-    return await tokens_for_user(user)
+    audit(db, user.id, "auth.login")
+    await db.commit()
+    return auth_service.tokens_for_user(user)
 
 
 @router.post("/refresh", response_model=TokenResponse)
-async def refresh(credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer)]):
+async def refresh(
+    credentials: Annotated[HTTPAuthorizationCredentials, Depends(bearer)],
+    db: DbSession,
+):
     payload = decode_token(credentials.credentials)
     if not payload or payload.get("type") != "refresh":
         raise HTTPException(status_code=401, detail="invalid_token")
-    access = create_access_token(payload["sub"])
-    refresh = create_refresh_token(payload["sub"])
-    return TokenResponse(access_token=access, refresh_token=refresh)
+    user = await db.get(User, UUID(str(payload["sub"])))
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=401, detail="invalid_token")
+    return auth_service.tokens_for_user(user)
 
 
 @router.get("/me", response_model=UserOut)
-async def me(current_user: Annotated[User, Depends(get_current_user)]):
+async def me(current_user: CurrentUser):
     return current_user
+

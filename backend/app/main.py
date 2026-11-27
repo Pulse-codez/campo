@@ -6,27 +6,33 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
+    admin,
     auth,
     conversations,
+    counselling,
     decision,
     escalation,
     health,
+    onboarding,
     policy,
     resources,
     safety,
+    speech,
     study,
+    universities,
 )
-from app.core.config import get_settings
-from app.core.database import Base, engine
-
-settings = get_settings()
+from app.core.database import AsyncSessionLocal, engine
+from app.models.base import Base
+from app.services.seed import seed_universities
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create tables on startup (Alembic manages migrations in production)
+    # Dev convenience: create tables and seed universities. Production uses Alembic migrations.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    async with AsyncSessionLocal() as db:
+        await seed_universities(db)
     yield
     await engine.dispose()
 
@@ -39,21 +45,30 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(health.router)
-app.include_router(auth.router)
-app.include_router(conversations.router)
-app.include_router(safety.router)
-app.include_router(resources.router)
-app.include_router(escalation.router)
-app.include_router(study.router)
-app.include_router(decision.router)
-app.include_router(policy.router)
+for router in (
+    health.router,
+    universities.router,
+    auth.router,
+    onboarding.router,
+    conversations.router,
+    counselling.router,
+    speech.router,
+    admin.router,
+    safety.router,
+    resources.router,
+    escalation.router,
+    study.router,
+    decision.router,
+    policy.router,
+):
+    app.include_router(router)
+
 
 @app.get("/", tags=["health"])
 async def root():
