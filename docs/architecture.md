@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes how the Campus Support Companion is built. The product requirements are in `Campus_Support_Companion_Architecture.pdf`. This document describes what is actually in the code.
+This document describes how rafiki-chat is built. The product requirements are in `Campus_Support_Companion_Architecture.pdf`. This document describes what is actually in the code.
 
 ## 1. Components
 

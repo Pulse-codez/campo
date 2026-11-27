@@ -35,7 +35,7 @@ def normalise_database_url(url: str) -> str:
 
 class Settings(BaseSettings):
     app_env: str = "development"
-    app_name: str = "campus-support-companion"
+    app_name: str = "rafiki-chat"
     debug: bool = False
     sql_echo: bool = False
 

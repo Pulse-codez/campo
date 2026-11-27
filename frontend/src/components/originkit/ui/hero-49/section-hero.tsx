@@ -27,7 +27,7 @@ export function SectionHero() {
       </div>
       <div className="scrim" />
       <header className="nav">
-        <div className="brand">Campus Support</div>
+        <div className="brand">rafiki-chat</div>
         <nav className="links">
           <a href="#features">What you can do</a>
           <a href="#conditions">Topics</a>
@@ -41,15 +41,15 @@ export function SectionHero() {
       </header>
       <main className="hero">
         <span className="eyebrow">
-          <b>Confidential</b>Student-led · Free
+          <b>Confidential</b>Made for Kenyan campuses
         </span>
         <h1>
           Support that meets you where you are, <em>on campus.</em>
         </h1>
         <p className="sub">
-          A private space for university students in Kenya to find campus
-          resources, plan around your energy, and reach a human when you need
-          one. No judgment, no waiting.
+          Talk it through by text or voice, write a monthly check-in, and ask
+          for a campus counsellor when you want a person. Private, with no
+          judgment.
         </p>
         <div className="buttons">
           <a className="btn" href="/login?tab=new">
@@ -75,13 +75,12 @@ export function SectionHero() {
           </a>
         </div>
         <div className="sources">
-          <span>Resources</span>
+          <span>Inside</span>
           <ul>
-            <li>Counselling</li>
-            <li>Health clinic</li>
-            <li>Peer support</li>
-            <li>Legal aid</li>
-            <li>Emergency</li>
+            <li>Text and voice chat</li>
+            <li>Kind words</li>
+            <li>Monthly check-in</li>
+            <li>Counselling requests</li>
           </ul>
         </div>
       </main>

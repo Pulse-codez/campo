@@ -1,4 +1,4 @@
-"""FastMCP server entry point for the Campus Support Companion."""
+"""FastMCP server entry point for the rafiki-chat."""
 
 from fastmcp import FastMCP
 from fastmcp.server.auth import StaticTokenVerifier
@@ -28,7 +28,7 @@ auth = (
     if settings.auth_token
     else None
 )
-mcp = FastMCP("campus-support-companion", auth=auth)
+mcp = FastMCP("rafiki-chat", auth=auth)
 
 # Register tools
 mcp.tool(policy_search.search_policies)

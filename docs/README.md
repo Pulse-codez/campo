@@ -1,4 +1,4 @@
-# Campus Support Companion: Documentation
+# rafiki-chat: Documentation
 
 Start here. Each document covers one part of the project.
 
