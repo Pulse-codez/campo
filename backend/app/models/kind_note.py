@@ -5,10 +5,10 @@ import uuid
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import TimestampedModel
+from app.models.base import ShortIdModel
 
 
-class KindNote(TimestampedModel):
+class KindNote(ShortIdModel):
     __tablename__ = "kind_notes"
 
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)

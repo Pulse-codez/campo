@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Literal
-from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -26,7 +25,7 @@ class KindNoteIn(BaseModel):
 class KindNoteOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
+    id: str
     recipient: str | None
     body: str
     created_at: datetime

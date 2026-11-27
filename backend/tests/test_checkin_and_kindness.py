@@ -61,6 +61,11 @@ async def test_checkin_saves_once_per_period(client):
     first = await client.post("/checkin", headers=headers, json=body)
     assert first.status_code == 201, first.text
     assert first.json()["requires_human"] is False
+    entry_id = first.json()["entry"]["id"]
+    assert len(entry_id) == 5
+
+    listed = (await client.get("/checkin", headers=headers)).json()
+    assert any(entry["id"] == entry_id for entry in listed)
 
     again = await client.post("/checkin", headers=headers, json=body)
     assert again.status_code == 409
@@ -127,6 +132,7 @@ async def test_kind_notes_are_private_to_their_writer(client):
     )
     assert created.status_code == 201
     note_id = created.json()["id"]
+    assert len(note_id) == 5
 
     mine = (await client.get("/kindness/notes", headers=owner)).json()
     assert any(n["id"] == note_id for n in mine)
