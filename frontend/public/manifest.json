@@ -1,6 +1,6 @@
 {
-  "name": "Campus Support Companion",
-  "short_name": "Campus Support",
+  "name": "rafiki-chat",
+  "short_name": "rafiki-chat",
   "description": "Confidential peer-style support for university students in Kenya.",
   "start_url": "/",
   "display": "standalone",

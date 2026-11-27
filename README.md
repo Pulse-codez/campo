@@ -1,4 +1,4 @@
-# Campus Support Companion
+# rafiki-chat
 
 Peer-style support tool for university students in Kenya. Specification: `Campus_Support_Companion_Architecture.pdf` (v1.0).
 

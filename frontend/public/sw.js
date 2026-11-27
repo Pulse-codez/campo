@@ -1,5 +1,5 @@
-// Campus Support Companion service worker, offline-first PWA shell
-const CACHE_NAME = "campus-support-v1";
+// rafiki-chat service worker, offline-first PWA shell
+const CACHE_NAME = "rafiki-chat-v1";
 const ASSETS = [
   "/",
   "/manifest.json",

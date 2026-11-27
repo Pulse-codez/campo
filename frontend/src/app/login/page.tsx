@@ -36,7 +36,7 @@ function LoginContent() {
   return (
     <SplitLayout left={<LeftPanel />}>
       <div className="w-full max-w-sm">
-        <p className="text-[11px] font-semibold tracking-[0.2em] text-[rgb(var(--fg)/0.62)]">CAMPUS SUPPORT / STUDENT ACCESS</p>
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-[rgb(var(--fg)/0.62)]">RAFIKI-CHAT / STUDENT ACCESS</p>
         <h1 className="mt-3 text-4xl font-bold text-[rgb(var(--fg))]">
           {tab === "signin" ? "Welcome back." : "Create your account."}
         </h1>

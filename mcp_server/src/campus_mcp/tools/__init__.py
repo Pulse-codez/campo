@@ -1,1 +1,1 @@
-"""MCP tool modules for the Campus Support Companion."""
+"""MCP tool modules for the rafiki-chat."""

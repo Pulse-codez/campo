@@ -5,11 +5,11 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Campus Support Companion",
+  title: "rafiki-chat",
   description: "Confidential peer-style support for university students in Kenya.",
   keywords: ["student support", "mental health", "campus", "Kenya", "counselling"],
   manifest: "/manifest.json",
-  appleWebApp: { capable: true, title: "Campus Support", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "rafiki-chat", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

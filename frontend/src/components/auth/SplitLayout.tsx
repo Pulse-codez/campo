@@ -10,8 +10,8 @@ export function BrandMark() {
         <span className="absolute inset-0 rotate-45 rounded-[3px] border-2 border-[rgb(var(--accent))]" />
       </span>
       <span>
-        <span className="block text-lg font-bold leading-none text-[rgb(var(--fg))]">Campus Support</span>
-        <span className="block text-[10px] tracking-[0.25em] text-[rgb(var(--fg)/0.62)]">COMPANION</span>
+        <span className="block text-lg font-bold leading-none text-[rgb(var(--fg))]">rafiki-chat</span>
+        <span className="block text-[10px] tracking-[0.25em] text-[rgb(var(--fg)/0.62)]">STUDENT SUPPORT</span>
       </span>
     </Link>
   );

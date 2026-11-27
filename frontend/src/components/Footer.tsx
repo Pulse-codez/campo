@@ -4,7 +4,7 @@ export default function Footer() {
       <div className="container px-4 py-10">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-sm text-[rgb(var(--fg)/0.62)]">
-            Campus Support Companion: peer-style support for university students in Kenya.
+            rafiki-chat: peer-style support for university students in Kenya.
           </div>
           <div className="flex gap-4 text-sm">
             <a href="/privacy" className="text-[rgb(var(--fg)/0.7)] hover:text-[rgb(var(--fg))] transition-colors">

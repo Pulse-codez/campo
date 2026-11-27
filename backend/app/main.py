@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
 settings = get_settings()
 
 app = FastAPI(
-    title="Campus Support Companion",
+    title="rafiki-chat",
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -97,4 +97,4 @@ async def anthropic_error_handler(request: Request, exc: APIError) -> JSONRespon
 
 @app.get("/", tags=["health"])
 async def root():
-    return {"service": "campus-support-companion", "status": "ok", "version": "0.1.0"}
+    return {"service": "rafiki-chat", "status": "ok", "version": "0.1.0"}

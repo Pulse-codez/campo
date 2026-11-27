@@ -59,7 +59,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-40 border-b border-[rgb(var(--fg)/0.12)] bg-[rgb(var(--bg)/0.85)] backdrop-blur-md">
           <div className="container flex items-center gap-6 h-16">
             <Link href={user.role === "student" ? "/talk" : "/sessions"} className="font-bold tracking-tight">
-              Campus Support
+              rafiki-chat
             </Link>
             <nav className="flex gap-5 overflow-x-auto">
               {nav.map((item) => (
