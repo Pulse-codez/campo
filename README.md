@@ -2,7 +2,7 @@
 
 Peer-style support tool for university students in Kenya. Specification: `Campus_Support_Companion_Architecture.pdf` (v1.0).
 
-Scope for v1.0: PWA client, FastAPI backend, TheraBot behind an LLM adapter, ElevenLabs speech, FHIR R4 facade, FastMCP policy/tool server, trigger.dev background jobs. AWS hosting and native apps are excluded.
+Scope for v1.0: PWA client, FastAPI backend, Claude (Anthropic API) behind an LLM adapter, ElevenLabs speech, FHIR R4 facade, FastMCP policy/tool server, trigger.dev background jobs. AWS hosting and native apps are excluded.
 
 ## Layout
 
@@ -60,7 +60,8 @@ cd jobs && pnpm exec tsc --noEmit
 
 ## Open items before build (spec Section 3)
 
-- Confirm TheraBot endpoints, auth, session model, and crisis-aware behavior with the vendor. Do not mix with the separate therappai platform.
+- Conversation model is Claude via the Anthropic API (replaces TheraBot). Confirm in writing with Anthropic: data residency, retention, use of conversation data for training, deletion on request, and a data processing agreement that fits the Kenya Data Protection Act 2019. Confirm the suitability of the model for crisis-adjacent use.
+- Choose the model. Options: `claude-haiku-5-5`, `claude-sonnet-5-5`, `claude-opus-5-5`, `claude-fable-5-2`. Set `ANTHROPIC_MODEL` in `.env`. The default is `claude-sonnet-5-5`.
 - Confirm ElevenLabs audio retention, residency, and latency from Kenya.
 - Clinical sign-off on risk taxonomy, escalation matrix, screening instruments, and crisis templates.
 - Regulatory review: Kenya Data Protection Act 2019, Digital Health Act 2023.
