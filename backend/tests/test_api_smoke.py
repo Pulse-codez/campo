@@ -308,3 +308,15 @@ def test_database_url_normalisation_for_neon_style_urls():
     assert normalise_database_url("postgres://u:p@h/db") == "postgresql+asyncpg://u:p@h/db"
     local = "postgresql+asyncpg://campus:campus@localhost:5432/campus_support"
     assert normalise_database_url(local) == local
+
+
+def test_cors_origins_accept_plain_json_and_comma_forms():
+    from app.core.config import parse_origins
+
+    assert parse_origins("https://a.vercel.app") == ["https://a.vercel.app"]
+    assert parse_origins("https://a.vercel.app, https://b.vercel.app") == [
+        "https://a.vercel.app",
+        "https://b.vercel.app",
+    ]
+    assert parse_origins('["https://a.vercel.app"]') == ["https://a.vercel.app"]
+    assert parse_origins("") == []

@@ -1,14 +1,28 @@
 """Application configuration via pydantic-settings."""
 
+import json
 from functools import lru_cache
 from pathlib import Path
+from typing import Annotated, Any
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 # The repo keeps one .env at the project root, not inside backend/.
 ROOT_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
+
+
+def parse_origins(value: Any) -> list[str]:
+    """Turn '["a","b"]', 'a,b' or 'a' into a list of origins."""
+    if not isinstance(value, str):
+        return list(value)
+    text = value.strip()
+    if not text:
+        return []
+    if text.startswith("["):
+        return [str(item).strip() for item in json.loads(text) if str(item).strip()]
+    return [item.strip() for item in text.split(",") if item.strip()]
 
 
 def normalise_database_url(url: str) -> str:
@@ -40,6 +54,11 @@ class Settings(BaseSettings):
     sql_echo: bool = False
 
     database_url: str
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def _parse_cors_origins(cls, value: Any) -> list[str]:
+        return parse_origins(value)
 
     @field_validator("database_url")
     @classmethod
@@ -90,7 +109,8 @@ class Settings(BaseSettings):
     # Development: any localhost or private-network address on any port (for LAN testing).
     cors_origin_regex: str = r"https?://(localhost|127\.0\.0\.1|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?"
 
-    cors_origins: list[str] = [
+    # Accepts a JSON list, a comma-separated list, or one plain address.
+    cors_origins: Annotated[list[str], NoDecode] = [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:3100",
