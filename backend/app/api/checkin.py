@@ -80,7 +80,7 @@ async def submit_checkin(body: CheckinIn, db: DbSession, user: CurrentUser):
     await db.commit()
     await db.refresh(row)
     entry = CheckinOut(
-        id=str(row.id),
+        id=row.public_id,
         period=row.period,
         feelings=row.feelings,
         direction=row.direction,
