@@ -1,6 +1,6 @@
 """escalation_request — route a student to human support when needed."""
 
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -10,7 +10,7 @@ class EscalationInput(BaseModel):
         "routine",
         description="Urgency level: routine, urgent, crisis",
     )
-    preferred_channel: Optional[str] = Field(
+    preferred_channel: str | None = Field(
         None,
         description="Preferred channel: counselling, health_clinic, peer_support, security, other",
     )
@@ -20,15 +20,15 @@ class EscalationOutput(BaseModel):
     ticket_id: str
     status: str
     estimated_response: str
-    contacts: List[str]
-    instructions: List[str]
+    contacts: list[str]
+    instructions: list[str]
     is_crisis: bool
 
 
 def request_escalation(
     reason: str,
     urgency: str = "routine",
-    preferred_channel: Optional[str] = None,
+    preferred_channel: str | None = None,
 ) -> EscalationOutput:
     """Create an escalation to human support and return immediate actions.
 

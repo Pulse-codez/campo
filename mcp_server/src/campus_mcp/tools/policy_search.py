@@ -1,12 +1,12 @@
 """policy_search — search campus support policies."""
 
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class PolicySearchInput(BaseModel):
     query: str = Field(..., description="What the student is looking for, e.g. 'mental health leave of absence'")
-    category: Optional[str] = Field(
+    category: str | None = Field(
         None,
         description="Policy category: mental_health, academic_accommodation, sexual_harassment, financial_aid, housing, conduct, other",
     )
@@ -18,12 +18,12 @@ class PolicyResult(BaseModel):
     title: str
     category: str
     summary: str
-    url: Optional[str] = None
-    contact_email: Optional[str] = None
-    last_reviewed: Optional[str] = None
+    url: str | None = None
+    contact_email: str | None = None
+    last_reviewed: str | None = None
 
 
-def search_policies(query: str, category: Optional[str] = None, limit: int = 5) -> List[PolicyResult]:
+def search_policies(query: str, category: str | None = None, limit: int = 5) -> list[PolicyResult]:
     """Search campus policies relevant to student wellbeing and support.
 
     This is a placeholder implementation. Replace the static catalogue with a

@@ -3,11 +3,11 @@
 from fastmcp import FastMCP
 
 from campus_mcp.tools import (
+    decision_lab,
+    escalation_request,
     policy_search,
     resource_finder,
     study_planner,
-    decision_lab,
-    escalation_request,
 )
 
 mcp = FastMCP("campus-support-companion")

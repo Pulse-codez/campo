@@ -1,6 +1,6 @@
 """resource_finder — locate campus and community support resources."""
 
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -9,11 +9,11 @@ class ResourceInput(BaseModel):
         ...,
         description="Type of resource: counselling, health_clinic, peer_support, emergency, spiritual, legal_aid, other",
     )
-    location: Optional[str] = Field(
+    location: str | None = Field(
         None,
         description="Campus or area, e.g. 'main campus', 'hostel block B', 'town centre'",
     )
-    hours: Optional[str] = Field(
+    hours: str | None = Field(
         None,
         description="Preferred hours, e.g. 'evening', 'weekend', '24 hours'",
     )
@@ -26,11 +26,11 @@ class ResourceResult(BaseModel):
     location: str
     contact: str
     hours: str
-    cost: Optional[str] = None
+    cost: str | None = None
     description: str
 
 
-def find_resources(resource_type: str, location: Optional[str] = None, hours: Optional[str] = None) -> List[ResourceResult]:
+def find_resources(resource_type: str, location: str | None = None, hours: str | None = None) -> list[ResourceResult]:
     """Find campus and community support resources matching the student's need.
 
     Placeholder implementation. Replace with a live directory (e.g. university

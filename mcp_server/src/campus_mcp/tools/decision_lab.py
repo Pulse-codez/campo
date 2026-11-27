@@ -1,38 +1,38 @@
 """decision_lab — structured decision support for health and wellbeing choices."""
 
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class Option(BaseModel):
     id: str
     label: str
-    pros: List[str]
-    cons: List[str]
-    estimated_effort: Optional[str] = None
-    estimated_cost: Optional[str] = None
+    pros: list[str]
+    cons: list[str]
+    estimated_effort: str | None = None
+    estimated_cost: str | None = None
 
 
 class DecisionLabInput(BaseModel):
     situation: str = Field(..., description="The decision the student is facing")
-    options: List[Option] = Field(..., min_items=2, description="Options to compare")
-    values: List[str] = Field(
+    options: list[Option] = Field(..., min_items=2, description="Options to compare")
+    values: list[str] = Field(
         ...,
         description="What matters most to the student, e.g. privacy, speed, cost, confidentiality",
     )
 
 
 class DecisionLabOutput(BaseModel):
-    recommended: Optional[str] = None
+    recommended: str | None = None
     reasoning: str
-    next_steps: List[str]
+    next_steps: list[str]
     crisis_flag: bool = False
 
 
 def evaluate_decision(
     situation: str,
-    options: List[Option],
-    values: List[str],
+    options: list[Option],
+    values: list[str],
 ) -> DecisionLabOutput:
     """Help a student weigh options using a simple values-aligned framework.
 
@@ -64,7 +64,6 @@ def evaluate_decision(
     scored = []
     for option in options:
         score = 0
-        value_text = " ".join(values).lower()
         option_text = (option.label + " " + " ".join(option.pros + option.cons)).lower()
         for v in values:
             if v.lower() in option_text:

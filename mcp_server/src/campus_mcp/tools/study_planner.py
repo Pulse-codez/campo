@@ -1,17 +1,17 @@
 """study_planner — build study plans that respect mental health capacity."""
 
-from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
 class StudyPlanInput(BaseModel):
-    units: List[str] = Field(..., description="Course units or topics to study")
+    units: list[str] = Field(..., description="Course units or topics to study")
     hours_per_week: int = Field(..., ge=1, le=40, description="Available study hours per week")
     energy_level: str = Field(
         "moderate",
         description="Current energy/capacity: low, moderate, high",
     )
-    exam_weeks_away: Optional[int] = Field(
+    exam_weeks_away: int | None = Field(
         None,
         ge=1,
         le=52,
@@ -29,16 +29,16 @@ class StudySession(BaseModel):
 
 
 class StudyPlanOutput(BaseModel):
-    sessions: List[StudySession]
+    sessions: list[StudySession]
     total_hours: float
-    notes: List[str]
+    notes: list[str]
 
 
 def plan_study(
-    units: List[str],
+    units: list[str],
     hours_per_week: int,
     energy_level: str = "moderate",
-    exam_weeks_away: Optional[int] = None,
+    exam_weeks_away: int | None = None,
 ) -> StudyPlanOutput:
     """Generate a weekly study plan that paces load by energy and exam proximity.
 
@@ -50,12 +50,11 @@ def plan_study(
     per_unit = max(effective_hours / max(len(units), 1), 0.5)
 
     days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    sessions: List[StudySession] = []
-    hour_index = 0
+    sessions: list[StudySession] = []
 
     for i, unit in enumerate(units):
         day = days[i % 7]
-        start_hour = 9 + (hour_index % 8)
+        start_hour = 9 + (i % 8)
         duration = int(min(per_unit, 2) * 60)
         sessions.append(
             StudySession(
@@ -67,7 +66,6 @@ def plan_study(
                 break_minutes=10,
             )
         )
-        hour_index += 1
 
     notes = [
         f"Planned {effective_hours:.1f} effective study hours this week.",
